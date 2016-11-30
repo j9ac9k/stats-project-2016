@@ -12,7 +12,8 @@ library(plyr)
 library(gridExtra)
 knitr::opts_chunk$set(echo = TRUE)
 ```
-1. Read dataset into R  
+1. Read dataset into R
+
 ```{r import}
 san_siero.attendees = read.csv('./data/Attendees_San_Siro.csv')
 san_siero.phone_data = read.csv('./data/San_Siro_Mobile_Phone_Data.csv')
