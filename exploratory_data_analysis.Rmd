@@ -196,7 +196,7 @@ with open('./data/Linate_Data.csv') as csvfile:
         row.append(converted_data[' '.join([day, time])])
         
 with open('./data/Linate_wrangled.csv', 'w') as csvfile:
-    wr = csv.writer(csvfile, delimiter=',')
+    wr = csv.writer(csvfile, delimiter=',', lineterminator='\n')
     wr.writerow(['Timestamp', 
                  'Calls.and.SMS.Activity', 
                  'Internet.Activity', 
