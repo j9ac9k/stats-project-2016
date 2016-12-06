@@ -1,0 +1,41 @@
+---
+title: "Quantifying crowd size with mobile phote and Twitter data - Final Report"
+author: "Ogi Moore and Connor Smith"
+date: "12/5/2016"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(scales)
+library(grid)
+library(plyr)
+library(gridExtra)
+```
+
+# Introduction
+
+We elected to replicate the findings of Federico Botta, Helen Susannah Moat, and Tobias Preis's paper on [Quantifying crowd size with mobile phone and _Twitter_ data](http://rsos.royalsocietypublishing.org/content/2/5/150162).  In the paper, they look at a number of soccer games with a known attendence and known phone, internet and twitter acitivity; and they evaluate the similar phone and internet and twitter acitivty in comparison to a number of flights over a several week period.
+
+# Data Import
+
+The data is in very good shape, but we do need to tell `R` that the timestamps are in-fact times, and not just generic strings.
+
+```{r import}
+san_siero.attendees = read.csv('./data/Attendees_San_Siro.csv')
+san_siero.phone_data = read.csv('./data/San_Siro_Mobile_Phone_Data.csv')
+san_siero.twitter_data = read.csv('./data/San_Siro_Twitter_Data.csv')
+linate.data = read.csv('./data/Linate_Data.csv')
+linate.flight_schedule = read.csv('./data/Linate_Flights_Schedule.csv')
+
+# Converting to dates
+san_siero.phone_data$Timestamp = as.Date(strptime(san_siero.phone_data$Timestamp, 
+                                                  "%Y-%m-%d %H:%M:%S"))
+san_siero.twitter_data$Timestamp = as.Date(san_siero.twitter_data$Timestamp)
+san_siero.attendees$Date = as.Date(san_siero.attendees$Date)
+```
+
+
+# Soccer Games Dataset
+
