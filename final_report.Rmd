@@ -168,5 +168,10 @@ kable(head(linate_flight_data),
 			centering=TRUE)
 ```
 
+### Notes from Connor:
+I just noticed that the data from the flights is still in the data set after wrangling. Was this intended? If not, I think that will also help clean up data.  
 
+I figured out the aggregation. The paper says "We compare this proxy indicator to the average mobile phone call and SMS activity recorded for each hour in a week, in the cells in which the airport is located."  
+
+This, to me, means that we should have one data point (an average) that corresponds to each hour of the week (24 hours X 7 days), then compare that to the flight data. leave us with 168 data points on each graph instead of 1464. I will work on doing these calculations and then post my result. I am unfamiliar with some of the methods in your python script, but that is likely the best way to take care of this part.  
 
