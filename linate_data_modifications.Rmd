@@ -1,0 +1,20 @@
+---
+title: "Linate data modifications"
+output: html_notebook
+---
+```{r}
+library(ggplot2)
+library(scales)
+library(grid)
+library(plyr)
+```
+
+
+```{r}
+linate_modified <- read.csv('./data/linate_aggregate.csv')
+
+p1 <- ggplot(linate_modified, aes(mean_calls_sms, flights)) + geom_point() + geom_smooth(method = 'lm')
+p2 <- ggplot(linate_modified, aes(mean_internet, flights)) + geom_point() + geom_smooth(method = 'lm')
+p3 <- ggplot(linate_modified, aes(mean_twitter, flights)) + geom_point() + geom_smooth(method = 'lm')
+grid.arrange(p1, p2, p3, ncol=3, nrow=1, respect=TRUE)
+```
