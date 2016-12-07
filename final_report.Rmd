@@ -68,23 +68,51 @@ attendees_v_phone <- lm(soccer_data$Attendees.at.San.Siro ~ soccer_data$Calls.an
 attendees_v_internet <- lm(soccer_data$Attendees.at.San.Siro ~ soccer_data$Internet.Activity)
 attendees_v_twitter <- lm(soccer_data$Attendees.at.San.Siro ~ soccer_data$Twitter.Activity)
 
-paper_results <- c(0.771, 0.937, 0.855)
-duplication_results <- 	c(round(summary(attendees_v_phone)$adj.r.squared, 3), 
-												  round(summary(attendees_v_internet)$adj.r.squared, 3),
-												  round(summary(attendees_v_twitter)$adj.r.squared, 3))
+lm_paper_results <- c(0.771, 0.937, 0.855)
+lm_duplication_results <- c(round(summary(attendees_v_phone)$adj.r.squared, 3), 
+														round(summary(attendees_v_internet)$adj.r.squared, 3),
+														round(summary(attendees_v_twitter)$adj.r.squared, 3))
 
-results <- data.frame(paper_results, 
-											duplication_results,
-											row.names=c('Calls and SMS Data', 
-																	'Internet Activity', 
-																	'Twitter Activity'))
+lm_results <- data.frame(lm_paper_results, 
+												 lm_duplication_results,
+												 row.names=c('Calls and SMS Data', 
+																		 'Internet Activity', 
+																		 'Twitter Activity'))
 
-kable(results,
+cor_paper_results <- c(0.927, 0.976, 0.924)
+cor_duplication_results <- c(round(cor(soccer_data$Attendees.at.San.Siro,
+																 			 soccer_data$Calls.and.SMS.Activity,
+																 			 method='spearman'), 3),
+														 round(cor(soccer_data$Attendees.at.San.Siro,
+														 		 			 soccer_data$Internet.Activity,
+														 		 			 method='spearman'), 3),
+														 round(cor(soccer_data$Attendees.at.San.Siro,
+														 					 soccer_data$Twitter.Activity,
+														 					 method='spearman'), 3))
+
+cor_results <- data.frame(cor_paper_results,
+													cor_duplication_results,
+												  row.names=c('Calls and SMS Data', 
+													 					  'Internet Activity', 
+																		  'Twitter Activity'))
+```
+
+Now that we've done our duplication of analysis, we can compare our results to those published.
+
+```{r soccer_results}
+kable(lm_results,
 			format='pandoc',
 			centering=TRUE,
-			caption='Replication Results',
+			caption='Linear Regression R^2^ Values',
+			col.names = c('Published Results', 'Duplication Results'))
+
+kable(cor_results,
+			format='pandoc',
+			caption='Spearman Correlation Values',
 			col.names = c('Published Results', 'Duplication Results'))
 ```
+
+Here we can see that the results we computed match up exactly with the results published.
 
 
 
