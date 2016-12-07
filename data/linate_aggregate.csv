@@ -1,4 +1,4 @@
-Day,Hour,Average of Calls.and.SMS.Activity,Average of Internet.Activity,Average of Twitter.Activity,Average of Flights
+day,hour,mean_calls_sms,mean_internet,mean_twitter,flights
 Sunday,0:00,732.758875,3650.5,0,0
 Sunday,1:00,1075.566,4360.95,0,0
 Sunday,2:00,1400.497,4864.05,0.125,0
