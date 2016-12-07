@@ -203,3 +203,48 @@ I figured out the aggregation. The paper says "We compare this proxy indicator t
 
 This, to me, means that we should have one data point (an average) that corresponds to each hour of the week (24 hours X 7 days), then compare that to the flight data. leave us with 168 data points on each graph instead of 1464. I will work on doing these calculations and then post my result. I am unfamiliar with some of the methods in your python script, but that is likely the best way to take care of this part.  
 
+
+```{python3 modified data wrangling}
+import csv
+import datetime as dt
+import pandas as pd
+
+linate_sched_data = pd.read_csv('./data/Linate_Flights_Schedule.csv')
+#linate_sched_data['Date'] = linate_sched_data['Timestamp'].apply(lambda x: dt.datetime.strptime(x,'%Y-%m-%d %H:%M:%S').date())
+linate_phone_data = pd.read_csv('./data/Linate_Data.csv')
+#linate_phone_raw['Date'] = linate_phone_raw['Timestamp'].apply(lambda x: dt.datetime.strptime(x,'%Y-%m-%d %H:%M:%S').date())
+
+# Establish days to skip
+days_to_skip_str = ['2013-11-01','2013-11-02','2013-11-03','2013-12-30','2013-12-31']
+days_to_skip_dt = [dt.datetime.strptime(date,'%Y-%m-%d').date() for date in days_to_skip_str]
+linate_phone_data.head()
+
+# Remove ignored dates
+for i,row in linate_phone_data.iterrows():
+    if dt.datetime.strptime(row['Timestamp'],'%Y-%m-%d %H:%M:%S').date() in days_to_skip_dt:
+        linate_phone_data.drop(i,inplace=True)
+        
+# Add columns
+linate_phone_data['day'] = pd.Series('', index=linate_phone_data.index)
+linate_phone_data['hour'] = pd.Series('', index=linate_phone_data.index)
+linate_sched_data['day'] = pd.Series('', index=linate_sched_data.index)
+linate_sched_data['hour'] = pd.Series('', index=linate_sched_data.index)
+# Populate Columns
+for i, row in linate_phone_data.iterrows():
+    linate_phone_data.loc[i,'day'] = str(dt.datetime.strptime(row['Timestamp'],'%Y-%m-%d %H:%M:%S').weekday())
+    linate_phone_data.loc[i,'hour'] = str(dt.datetime.strptime(row['Timestamp'],'%Y-%m-%d %H:%M:%S').hour)
+for i, row in linate_sched_data.iterrows():
+    linate_sched_data.loc[i,'day'] = str(dt.datetime.strptime(row['Timestamp'],'%Y-%m-%d %H:%M:%S').weekday())
+    linate_sched_data.loc[i,'hour'] = str(dt.datetime.strptime(row['Timestamp'],'%Y-%m-%d %H:%M:%S').hour)
+
+linate_final = pd.DataFrame(linate_phone_data.groupby(['day','hour'],sort=True).mean())
+linate_final['Flights'] = pd.Series('', index=linate_final.index)
+linate_sched_data['total_flights'] = pd.Series('', index=linate_sched_data.index)
+
+#unfinished, needs more work
+
+
+```
+
+
+
