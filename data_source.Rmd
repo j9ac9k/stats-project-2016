@@ -1,0 +1,23 @@
+---
+title: "Data Source"
+output: html_notebook
+---
+# SMS, Call, and Internet Data  
+Data collected for internet, phone calls, SMS, and Twitter data was provided by the Telecom Italia Big Data Challenge. The data was acquired and anonymized by Telecom Italia. The data originates from Milan and surrounding areas between 1 November 2013 and 31 December 2013.  
+  
+All interactions on the mobile network generate Call Detail Records (CDRs). These are acquired by the following parameters:  
+- SMS Data  
+    - CDR is generated for each SMS sent and recieved  
+- Call Data  
+    - CDR is generated for each call sent and recieved  
+- Internet Access: CDR is generated for the following events:  
+    - Internet connection is opened  
+    - Internet Connection is closed  
+    - Internet Connection is open and 15 minutes has passed since last CDR  
+    - Internet Connection is open and 5 MB have been transferred since last CDR was generated  
+  
+After being collected, the data was rescaled for privacy reasons. The SMS and call data were scaled using the same factor, while internet data was scaled using a different factor.  
+  
+# Twitter Data  
+Similarly to the SMS, Call, and Internet Data, geo-localised tweets were collected from the Big Data Challenge (same time and location). It is not indicated that any data rescaling was completed. The paper does not state that the Twitter data is "normalized," so it is assumed to be untouched.  
+  
