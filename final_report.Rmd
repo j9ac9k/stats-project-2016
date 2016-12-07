@@ -12,6 +12,7 @@ library(scales)
 library(grid)
 library(plyr)
 library(gridExtra)
+library(knitr)
 ```
 
 # Introduction
@@ -36,6 +37,135 @@ san_siero.twitter_data$Timestamp = as.Date(san_siero.twitter_data$Timestamp)
 san_siero.attendees$Date = as.Date(san_siero.attendees$Date)
 ```
 
+The soccer game raw data is comprised of 3 seperate files, so we need to merge them together based on the relevant timestamps.
+
+```{r soccer_cleanup}
+san_siero.daily_data <- aggregate(san_siero.phone_data$Calls.and.SMS.Activity, 
+                                  by=list(Category=san_siero.phone_data$Timestamp), 
+                                  FUN=sum)
+san_siero.daily_data <- rename(san_siero.daily_data, c("x"="Calls.and.SMS.Activity"))
+san_siero.daily_data$Internet.Activity = aggregate(san_siero.phone_data$Internet.Activity, 
+                                         by=list(Cateogry=san_siero.phone_data$Timestamp), 
+                                         FUN=sum)$x
+san_siero.daily_data$Twitter.Activity = san_siero.twitter_data$Twitter.Activity
+san_siero.daily_data <- rename(san_siero.daily_data, c("Category"="Date"))
+soccer_data <- merge(san_siero.daily_data, san_siero.attendees, 
+                                        by="Date")
+
+kable(head(soccer_data),
+			format='pandoc',
+			caption='Soccer Game Data',
+			centering=TRUE)
+```
+
 
 # Soccer Games Dataset
+
+The authors performed a linear regression comparing calls and SMS activity, Internet activity, _Twitter_ activity to the number of attendees.  With `R` we are able to perform the same linear regression analysis with ease.
+
+```{r soccer_analysis}
+attendees_v_phone <- lm(soccer_data$Attendees.at.San.Siro ~ soccer_data$Calls.and.SMS.Activity)
+attendees_v_internet <- lm(soccer_data$Attendees.at.San.Siro ~ soccer_data$Internet.Activity)
+attendees_v_twitter <- lm(soccer_data$Attendees.at.San.Siro ~ soccer_data$Twitter.Activity)
+
+paper_results <- c(0.771, 0.973, 0.855)
+duplication_results <- 	c(summary(attendees_v_phone)$r.squared, 
+												  summary(attendees_v_internet)$r.squared,
+												  summary(attendees_v_twitter)$r.squared)
+
+results <- data.frame(paper_results, 
+											duplication_results,
+											row.names=c('Calls and SMS Data', 
+																	'Internet Activity', 
+																	'Twitter Activity'))
+
+kable(results,
+			format='pandoc',
+			centering=TRUE,
+			caption='Replication Results',
+			col.names = c('Published Results', 'Duplication Results'))
+```
+
+
+# Airport Dataset
+
+In the airport dataset the authors took a different method to approximating the crowd size.  They approximated the number of people at the airport based on the number of outgoing flights for two hours following a specific time, and the incoming flights for an hour leading up to a specific time.  The raw data provides the number of flights arriving and departing the airport on an hour by hour basis over a 1 week period.
+
+```{r airport_flight_data}
+kable(head(linate.flight_schedule),
+			format='pandoc',
+			caption="Linate Flight Schedule Data",
+			centering=TRUE)
+```
+
+The authors also provide a relative quantity of calls and SMS activity and internet activity, as well as Twitter activity
+
+```{r airport_phone_data}
+kable(head(linate.data),
+			format='pandoc',
+			caption='Linate Phone Data',
+			centering=TRUE)
+```
+
+The reader may notice here that the dates of the time-stamps do not match up (they are off by 6 months).  The authors explain that the way they compensate for this is that they line up the days of the week from the flights data, and assume that the flight schedule remains fairly consistent week for week.  They excluded November 1^st^, 2^nd^, and 3^rd^, as well as December 30^th^ and 31^st^.
+
+As the authors decided to look at the number of incoming flights up to an hour before, and the number of departing flights for two hours following, this made for having to modify the raw data substantially.  This was outside of our skill set in `R`, however we were able to make the modifications necessary in `Python`.
+
+```{python3 flight_data_wrangling}
+import csv
+import datetime
+converted_data = {}
+days_to_skip = set(['2013-11-01', '2013-11-02', '2013-11-03', '2013-12-31', '2013-12-30'])
+with open('./data/Linate_Flights_Schedule.csv') as csvfile:
+    content = csv.reader(csvfile, delimiter=',')
+    next(content, None)
+    list_content = list(content)
+    # Calculate the total number of relevant flights at any given time
+    for index, row in enumerate(list_content):
+        if row[0].split(' ')[0] in days_to_skip:
+            continue
+        total_flights = sum([int(row[1]), int(row[2])])
+        try:
+            total_flights += int(list_content[index+1][1])
+        except IndexError:
+            pass
+        output_day = datetime.datetime.strptime(row[0].split(' ')[0], 
+                                                '%Y-%m-%d').strftime('%a')
+        converted_data[' '.join([output_day, row[0].split(' ')[1]])] = total_flights
+        
+with open('./data/Linate_Data.csv') as csvfile:
+    content = csv.reader(csvfile, delimiter=',')
+    next(content, None)
+    list_content = list(content)
+    # Attach the number of flights to the mobile phone data point
+    for row in list_content:
+        date = row[0].split(' ')[0]
+        time = row[0].split(' ')[1]
+        day = datetime.datetime.strptime(date, '%Y-%m-%d').strftime('%a')
+        row.append(converted_data[' '.join([day, time])])
+
+# output the new data to a CSV file        
+with open('./data/Linate_wrangled.csv', 'w') as csvfile:
+    wr = csv.writer(csvfile, delimiter=',', lineterminator='\n')
+    wr.writerow(['Timestamp', 
+                 'Calls.and.SMS.Activity', 
+                 'Internet.Activity', 
+                 'Twitter.Activity', 
+                 'Flights'])
+    wr.writerows([row for row in list_content])
+```
+
+Here, the python file generated a new csv file that we will import with `R` to do our analysis with.
+
+```{r flight_data_import}
+linate_flight_data = read.csv('./data/Linate_wrangled.csv')
+linate_flight_data$Timestamp = as.Date(strptime(linate_flight_data$Timestamp, 
+                                                "%Y-%m-%d %H:%M:%S"))
+kable(head(linate_flight_data),
+			format='pandoc',
+			caption='Linate Flight Data Cleaned Up',
+			centering=TRUE)
+```
+
+
 
