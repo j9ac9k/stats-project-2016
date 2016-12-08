@@ -205,45 +205,34 @@ This, to me, means that we should have one data point (an average) that correspo
 
 
 ```{python3 modified data wrangling}
-import csv
-import datetime as dt
+import numpy as np
 import pandas as pd
+import datetime as dt
+linate_sched_data = pd.read_csv('./data/Linate_Flights_Schedule.csv', 
+                                parse_dates=[0],
+                                infer_datetime_format=True,
+                                index_col=0)
+linate_sched_data['Day'] = linate_sched_data.index.weekday_name
+linate_sched_data['Hour'] = linate_sched_data.index.hour
 
-linate_sched_data = pd.read_csv('./data/Linate_Flights_Schedule.csv')
-#linate_sched_data['Date'] = linate_sched_data['Timestamp'].apply(lambda x: dt.datetime.strptime(x,'%Y-%m-%d %H:%M:%S').date())
-linate_phone_data = pd.read_csv('./data/Linate_Data.csv')
-#linate_phone_raw['Date'] = linate_phone_raw['Timestamp'].apply(lambda x: dt.datetime.strptime(x,'%Y-%m-%d %H:%M:%S').date())
+linate_sched_data['Flights'] = linate_sched_data['Departures'] + \
+                               np.roll(linate_sched_data['Departures'], 1) + \
+                               np.roll(linate_sched_data['Arrivals'], -1)
+linate_flight_data = pd.DataFrame(linate_sched_data.groupby(['Day', 'Hour']).sum())        
+linate_flight_data.drop(['Arrivals', 'Departures'], inplace=True, axis=1)
+linate_phone_data = pd.read_csv('./data/Linate_Data.csv',
+                               parse_dates=[0],
+                               infer_datetime_format=True)
 
-# Establish days to skip
-days_to_skip_str = ['2013-11-01','2013-11-02','2013-11-03','2013-12-30','2013-12-31']
-days_to_skip_dt = [dt.datetime.strptime(date,'%Y-%m-%d').date() for date in days_to_skip_str]
-linate_phone_data.head()
+days_to_skip = pd.to_datetime(['2013-11-01','2013-11-02','2013-11-03','2013-12-30','2013-12-31']).date
+linate_phone_data = linate_phone_data[linate_phone_data['Timestamp'].dt.date.isin(days_to_skip) == False]
 
-# Remove ignored dates
-for i,row in linate_phone_data.iterrows():
-    if dt.datetime.strptime(row['Timestamp'],'%Y-%m-%d %H:%M:%S').date() in days_to_skip_dt:
-        linate_phone_data.drop(i,inplace=True)
-        
-# Add columns
-linate_phone_data['day'] = pd.Series('', index=linate_phone_data.index)
-linate_phone_data['hour'] = pd.Series('', index=linate_phone_data.index)
-linate_sched_data['day'] = pd.Series('', index=linate_sched_data.index)
-linate_sched_data['hour'] = pd.Series('', index=linate_sched_data.index)
-# Populate Columns
-for i, row in linate_phone_data.iterrows():
-    linate_phone_data.loc[i,'day'] = str(dt.datetime.strptime(row['Timestamp'],'%Y-%m-%d %H:%M:%S').weekday())
-    linate_phone_data.loc[i,'hour'] = str(dt.datetime.strptime(row['Timestamp'],'%Y-%m-%d %H:%M:%S').hour)
-for i, row in linate_sched_data.iterrows():
-    linate_sched_data.loc[i,'day'] = str(dt.datetime.strptime(row['Timestamp'],'%Y-%m-%d %H:%M:%S').weekday())
-    linate_sched_data.loc[i,'hour'] = str(dt.datetime.strptime(row['Timestamp'],'%Y-%m-%d %H:%M:%S').hour)
-
-linate_final = pd.DataFrame(linate_phone_data.groupby(['day','hour'],sort=True).mean())
-linate_final['Flights'] = pd.Series('', index=linate_final.index)
-linate_sched_data['total_flights'] = pd.Series('', index=linate_sched_data.index)
-
-#unfinished, needs more work
-
-
+linate_phone_data.set_index('Timestamp', drop=True, inplace=True)
+linate_phone_data['Day'] = linate_phone_data.index.weekday_name
+linate_phone_data['Hour'] = linate_phone_data.index.hour
+linate_avg_phone_data = pd.DataFrame(linate_phone_data.groupby(['Day', 'Hour'],sort=True).mean())
+result = pd.concat([linate_flight_data, linate_avg_phone_data], axis=1)
+result.to_csv('./data/Linate_wrangled.csv')
 ```
 
 
