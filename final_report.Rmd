@@ -64,37 +64,40 @@ kable(head(soccer_data),
 The authors performed a linear regression comparing calls and SMS activity, Internet activity, _Twitter_ activity to the number of attendees.  With `R` we are able to perform the same linear regression analysis with ease.
 
 ```{r soccer_analysis}
-attendees_v_phone <- lm(soccer_data$Attendees.at.San.Siro ~ soccer_data$Calls.and.SMS.Activity)
-attendees_v_internet <- lm(soccer_data$Attendees.at.San.Siro ~ soccer_data$Internet.Activity)
-attendees_v_twitter <- lm(soccer_data$Attendees.at.San.Siro ~ soccer_data$Twitter.Activity)
+attendees_v_phone <- lm(soccer_data$Attendees.at.San.Siro ~ 
+                          soccer_data$Calls.and.SMS.Activity)
+attendees_v_internet <- lm(soccer_data$Attendees.at.San.Siro ~ 
+                             soccer_data$Internet.Activity)
+attendees_v_twitter <- lm(soccer_data$Attendees.at.San.Siro ~ 
+                            soccer_data$Twitter.Activity)
 
 lm_paper_results <- c(0.771, 0.937, 0.855)
-lm_duplication_results <- c(round(summary(attendees_v_phone)$adj.r.squared, 3), 
-														round(summary(attendees_v_internet)$adj.r.squared, 3),
-														round(summary(attendees_v_twitter)$adj.r.squared, 3))
+lm_duplication_results <- c(round(summary(attendees_v_phone)$adj.r.squared, 3),
+                            round(summary(attendees_v_internet)$adj.r.squared, 3),
+                            round(summary(attendees_v_twitter)$adj.r.squared, 3))
 
 lm_results <- data.frame(lm_paper_results, 
-												 lm_duplication_results,
-												 row.names=c('Calls and SMS Data', 
-																		 'Internet Activity', 
-																		 'Twitter Activity'))
+                         lm_duplication_results,
+                         row.names=c('Calls and SMS Data', 
+                                     'Internet Activity', 
+                                     'Twitter Activity'))
 
 cor_paper_results <- c(0.927, 0.976, 0.924)
 cor_duplication_results <- c(round(cor(soccer_data$Attendees.at.San.Siro,
-																 			 soccer_data$Calls.and.SMS.Activity,
-																 			 method='spearman'), 3),
-														 round(cor(soccer_data$Attendees.at.San.Siro,
-														 		 			 soccer_data$Internet.Activity,
-														 		 			 method='spearman'), 3),
-														 round(cor(soccer_data$Attendees.at.San.Siro,
-														 					 soccer_data$Twitter.Activity,
-														 					 method='spearman'), 3))
+                                       soccer_data$Calls.and.SMS.Activity,
+                                       method='spearman'), 3),
+                             round(cor(soccer_data$Attendees.at.San.Siro,
+                                       soccer_data$Internet.Activity,
+                                       method='spearman'), 3),
+                             round(cor(soccer_data$Attendees.at.San.Siro,
+                                       soccer_data$Twitter.Activity,
+                                       method='spearman'), 3))
 
 cor_results <- data.frame(cor_paper_results,
-													cor_duplication_results,
-												  row.names=c('Calls and SMS Data', 
-													 					  'Internet Activity', 
-																		  'Twitter Activity'))
+                          cor_duplication_results,
+                          row.names=c('Calls and SMS Data', 
+                                      'Internet Activity', 
+                                      'Twitter Activity'))
 ```
 
 Now that we've done our duplication of analysis, we can compare our results to those published.
@@ -114,11 +117,25 @@ kable(cor_results,
 
 Here we can see that the results we computed match up exactly with the results published.
 
+We can also replicate their plot
+
+```{r figure_3}
+p1 <- ggplot(soccer_data, aes(Calls.and.SMS.Activity, 
+                              Attendees.at.San.Siro)) + 
+	geom_point()
+p2 <- ggplot(soccer_data, aes(Internet.Activity, 
+                              Attendees.at.San.Siro)) +
+	geom_point()
+p3 <- ggplot(soccer_data, aes(Twitter.Activity, 
+                              Attendees.at.San.Siro)) + 
+	geom_point()
+grid.arrange(p1, p2, p3, ncol=3, nrow=1, respect=TRUE)
+```
 
 
 # Airport Dataset
 
-In the airport dataset the authors took a different method to approximating the crowd size.  They approximated the number of people at the airport based on the number of outgoing flights for two hours following a specific time, and the incoming flights for an hour leading up to a specific time.  The raw data provides the number of flights arriving and departing the airport on an hour by hour basis over a 1 week period.
+In the airport dataset the authors took a different method to approximating the crowd size.  They approximated the number of people at the airport based on the number of flights to and from the airport.  More specifically, they summed the flights departing in the two hour window following the time of interest and the number of incoming flights in the hour leading up to the time of interest.  The raw data provides the number of flights arriving and departing the airport on an hour by hour basis over a 1 week period.
 
 ```{r airport_flight_data}
 kable(head(linate.flight_schedule),
@@ -138,71 +155,7 @@ kable(head(linate.data),
 
 The reader may notice here that the dates of the time-stamps do not match up (they are off by 6 months).  The authors explain that the way they compensate for this is that they line up the days of the week from the flights data, and assume that the flight schedule remains fairly consistent week for week.  They excluded November 1^st^, 2^nd^, and 3^rd^, as well as December 30^th^ and 31^st^.
 
-As the authors decided to look at the number of incoming flights up to an hour before, and the number of departing flights for two hours following, this made for having to modify the raw data substantially.  This was outside of our skill set in `R`, however we were able to make the modifications necessary in `Python`.
-
-```{python3 flight_data_wrangling}
-import csv
-import datetime
-converted_data = {}
-days_to_skip = set(['2013-11-01', '2013-11-02', '2013-11-03', '2013-12-31', '2013-12-30'])
-with open('./data/Linate_Flights_Schedule.csv') as csvfile:
-    content = csv.reader(csvfile, delimiter=',')
-    next(content, None)
-    list_content = list(content)
-    # Calculate the total number of relevant flights at any given time
-    for index, row in enumerate(list_content):
-        if row[0].split(' ')[0] in days_to_skip:
-            continue
-        total_flights = sum([int(row[1]), int(row[2])])
-        try:
-            total_flights += int(list_content[index+1][1])
-        except IndexError:
-            pass
-        output_day = datetime.datetime.strptime(row[0].split(' ')[0], 
-                                                '%Y-%m-%d').strftime('%a')
-        converted_data[' '.join([output_day, row[0].split(' ')[1]])] = total_flights
-        
-with open('./data/Linate_Data.csv') as csvfile:
-    content = csv.reader(csvfile, delimiter=',')
-    next(content, None)
-    list_content = list(content)
-    # Attach the number of flights to the mobile phone data point
-    for row in list_content:
-        date = row[0].split(' ')[0]
-        time = row[0].split(' ')[1]
-        day = datetime.datetime.strptime(date, '%Y-%m-%d').strftime('%a')
-        row.append(converted_data[' '.join([day, time])])
-
-# output the new data to a CSV file        
-with open('./data/Linate_wrangled.csv', 'w') as csvfile:
-    wr = csv.writer(csvfile, delimiter=',', lineterminator='\n')
-    wr.writerow(['Timestamp', 
-                 'Calls.and.SMS.Activity', 
-                 'Internet.Activity', 
-                 'Twitter.Activity', 
-                 'Flights'])
-    wr.writerows([row for row in list_content])
-```
-
-Here, the python file generated a new csv file that we will import with `R` to do our analysis with.
-
-```{r flight_data_import}
-linate_flight_data = read.csv('./data/Linate_wrangled.csv')
-linate_flight_data$Timestamp = as.Date(strptime(linate_flight_data$Timestamp, 
-                                                "%Y-%m-%d %H:%M:%S"))
-kable(head(linate_flight_data),
-			format='pandoc',
-			caption='Linate Flight Data Cleaned Up',
-			centering=TRUE)
-```
-
-### Notes from Connor:
-I just noticed that the data from the flights is still in the data set after wrangling. Was this intended? If not, I think that will also help clean up data.  
-
-I figured out the aggregation. The paper says "We compare this proxy indicator to the average mobile phone call and SMS activity recorded for each hour in a week, in the cells in which the airport is located."  
-
-This, to me, means that we should have one data point (an average) that corresponds to each hour of the week (24 hours X 7 days), then compare that to the flight data. leave us with 168 data points on each graph instead of 1464. I will work on doing these calculations and then post my result. I am unfamiliar with some of the methods in your python script, but that is likely the best way to take care of this part.  
-
+As the authors decided to look at the number of incoming flights up to an hour before, and the number of departing flights for two hours following, this made for having to modify the raw data substantially.  This was outside of our skill set in `R`, however we were able to make the modifications necessary in `Python`.  Should a reviewer wish to rerun this python code, they will need the Pandas library installed.  The `Python` code outputs a file titled 'Linate_wrangled.csv' which we will import into `R` to generate our statistics with.
 
 ```{python3 modified data wrangling}
 import numpy as np
@@ -224,16 +177,35 @@ linate_phone_data = pd.read_csv('./data/Linate_Data.csv',
                                parse_dates=[0],
                                infer_datetime_format=True)
 
-days_to_skip = pd.to_datetime(['2013-11-01','2013-11-02','2013-11-03','2013-12-30','2013-12-31']).date
-linate_phone_data = linate_phone_data[linate_phone_data['Timestamp'].dt.date.isin(days_to_skip) == False]
-
+days_to_skip = pd.to_datetime(['2013-11-01',
+                               '2013-11-02',
+                               '2013-11-03',
+                               '2013-12-30',
+                               '2013-12-31']).date
+linate_phone_data = \
+    linate_phone_data[linate_phone_data['Timestamp'].dt.date.isin(days_to_skip) == False]
 linate_phone_data.set_index('Timestamp', drop=True, inplace=True)
 linate_phone_data['Day'] = linate_phone_data.index.weekday_name
 linate_phone_data['Hour'] = linate_phone_data.index.hour
-linate_avg_phone_data = pd.DataFrame(linate_phone_data.groupby(['Day', 'Hour'],sort=True).mean())
+linate_avg_phone_data = pd.DataFrame(linate_phone_data.groupby(['Day', 'Hour'], 
+                                                               sort=True).mean())
 result = pd.concat([linate_flight_data, linate_avg_phone_data], axis=1)
 result.to_csv('./data/Linate_wrangled.csv')
 ```
 
+Here, the python file generated a new csv file that we will import with `R` to do our analysis with.
 
+```{r flight_import}
+linate_flight_data <- read.csv('./data/Linate_wrangled.csv')
+kable(head(linate_flight_data),
+			format='pandoc',
+			caption='Linate Flight Data Cleaned Up',
+			centering=TRUE)
+```
 
+```{r figure4}
+p1 <- ggplot(linate_flight_data, aes(Calls.and.SMS.Activity, Flights)) + geom_point()
+p2 <- ggplot(linate_flight_data, aes(Internet.Activity, Flights)) + geom_point()
+p3 <- ggplot(linate_flight_data, aes(Twitter.Activity, Flights)) + geom_point()
+grid.arrange(p1, p2, p3, ncol=3, nrow=1, respect=TRUE)
+```
