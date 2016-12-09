@@ -1,4 +1,9 @@
 ---
+title: "R Notebook"
+output: html_notebook
+---
+
+---
 title: "Quantifying crowd size with mobile phote and Twitter data - Final Report"
 author: "Ogi Moore and Connor Smith"
 date: "12/5/2016"
@@ -190,9 +195,8 @@ scientific_formatter <- function(x){
 p1 <- ggplot(soccer_data, aes(Calls.and.SMS.Activity, 
                               Attendees.at.San.Siro)) + 
 	    geom_point(col='#354CB0') +
-      scale_y_continuous(labels=scientific_formatter,limits = c(0,85000),breaks=seq(0,80000,20000)) +
-      scale_x_continuous(limits = c(0,600),breaks=seq(0,600,300)) + 
-      geom_smooth(method ='lm', se=FALSE, colour='#959190', fullrange=TRUE,size=2)  +
+      scale_y_continuous(labels=scientific_formatter) +
+      stat_smooth(method ='lm', se=FALSE, colour='#959190', fullrange=TRUE)  +
       expand_limits(x=0, y=0) +
       labs(x='Calls and SMS Activity', y='Attendees') +
       theme(panel.background = element_blank(),
@@ -202,9 +206,7 @@ p1 <- ggplot(soccer_data, aes(Calls.and.SMS.Activity,
 p2 <- ggplot(soccer_data, aes(Internet.Activity, 
                               Attendees.at.San.Siro)) +
 	    geom_point(colour='#7876C9') +
-      scale_y_continuous(labels=scientific_formatter,limits = c(0,85000),breaks=seq(0,80000,20000)) + 
-      scale_x_continuous(limits = c(0,200),breaks=seq(0,200,100)) + 
-      geom_smooth(method ='lm', se=FALSE, colour='#959190', fullrange=TRUE,size=2)  +
+      stat_smooth(method ='lm', se=FALSE, colour='#959190', fullrange=TRUE)  +
       expand_limits(x=c(0, 200), y=0) +
       labs(x='Internet activity') +
       theme(aspect.ratio=1,
@@ -217,9 +219,7 @@ p2 <- ggplot(soccer_data, aes(Internet.Activity,
 p3 <- ggplot(soccer_data, aes(Twitter.Activity, 
                               Attendees.at.San.Siro)) + 
 	    geom_point(col='#E41D1A') +
-      scale_y_continuous(labels=scientific_formatter,limits = c(0,85000),breaks=seq(0,80000,20000)) + 
-      scale_x_continuous(limits = c(0,200),breaks=seq(0,200,100)) + 
-      geom_smooth(method ='lm', se=FALSE, colour='#959190', fullrange=TRUE,size=2) +
+      stat_smooth(method ='lm', se=FALSE, colour='#959190', fullrange=TRUE) +
       expand_limits(x=c(0, 200), y=0) +
       labs(x='Twitter activity') +
       theme(aspect.ratio=1,
@@ -236,7 +236,8 @@ p3 <- ggplot_gtable(ggplot_build(p3))
 maxHeight = unit.pmax(p1$heights[2:3], p2$heights[2:3], p3$heights[2:3])
 p1$heights[2:3] <- maxHeight
 p2$heights[2:3] <- maxHeight
-grid.arrange(p1, p2, p3, ncol=3, nrow=1, respect=TRUE,widths=c(1.1,1,1))
+grid.arrange(p1, p2, p3, ncol=3, nrow=1, respect=TRUE)
+p1
 ```
 
 
