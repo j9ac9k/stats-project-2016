@@ -66,7 +66,7 @@ kable(head(soccer_data),
 
 First, the authors created a plot showing the various measures (calls and SMS data, internet activity, Twitter activity, and attendance) on a date scale. We are able to replicate this data using `R`  
 
-```{r figure2}
+```{r figure2, echo=FALSE}
 p1 <- ggplot(san_siero.phone_data, aes(x=Timestamp, y=Calls.and.SMS.Activity)) + 
       geom_line(colour='#354CB0',size=1) + 
       scale_y_continuous(breaks=seq(0,600,300)) + 
@@ -184,7 +184,7 @@ kable(cor_results,
 
 Our spearman correlation values match up precisely as well.  Since we have come to the same conclusions, we can replicate their plot.
 
-```{r figure_3}
+```{r figure_3, echo=FALSE}
 # Thanks to: https://stackoverflow.com/questions/10762287/
 #            how-can-i-format-axis-labels-with-exponents-with-ggplot2-and-scales
 scientific_formatter <- function(x){
@@ -294,39 +294,11 @@ grid.arrange(p1, p2, p3, p4, ncol=4, nrow=1, respect=TRUE,widths=c(1.15,1,1,1.3)
 
 This plot involves running a prediction -- OGI LEAVE NOTES HERE --  
 
-```{r soccer_loocv}
-model_2 <- lm(Attendees.at.San.Siro ~ Calls.and.SMS.Activity + 
-                Internet.Activity + 
-                Twitter.Activity,data=soccer_data)
-attendence <- data.frame(predicted = predict(model_2, 
-                                             newdata=soccer_data,
-                                             interval='prediction'),
-                         actual = soccer_data$Attendees.at.San.Siro)
+# Note to Connor
 
-p4 <- ggplot(attendence, aes(x=actual,y=predicted.fit)) +
-          geom_errorbar(aes(ymin = predicted.lwr, ymax = predicted.upr), 
-                       colour = "blue", 
-                       alpha = 0.2,
-                       size=4) + 
-          geom_point(colour = "blue") +
-          geom_smooth(method='lm', 
-                      se=FALSE, 
-                      colour='#959190', 
-                      fullrange=TRUE,
-                      size=2) + 
-          scale_y_continuous(labels=scientific_formatter,
-                             breaks=seq(10000,90000,40000)) + 
-          coord_cartesian(ylim=c(0,90000),
-                          xlim=c(0,90000)) +
-          scale_x_continuous(labels=scientific_formatter, 
-                             limits=c(-10000,100000),
-                             breaks=seq(10000,90000,40000)) + 
-          labs(x='Actual',y='Predicted') +
-          theme(aspect.ratio=1,
-                panel.background = element_blank(),
-                panel.border = element_rect(colour='black', fill=NA, size=1))
-    
-```
+What we should probably do is omit the 4th plot from Figure 3, and put the results from the two different models we created in a seperate plot below, disucssing how we came up with both models, and how they're different
+
+# End Note
 
 For comparison, here is the plot attached to the paper:
 
@@ -394,15 +366,18 @@ result = pd.concat([linate_flight_data, linate_avg_phone_data], axis=1)
 result.to_csv('./data/Linate_wrangled.csv')
 ```
 
-We can now import the wrangled CSV file that our python code generated and move on with our analysis.
+We can now import the wrangled CSV file that our python code generated and move on with our analysis.  Here is what the head of that dataframe looks like.
+
+```{r flight_wrangle_import}
+flight_data <- read.csv('./data/Linate_wrangled.csv')
+kable(head(flight_data),
+			format='pandoc',
+			caption='Linate Flight Data Cleaned Up',
+			centering=TRUE)
+```
+
 
 ```{r flight_analysis}
-flight_data <- read.csv('./data/Linate_wrangled.csv')
-# kable(head(linate_flight_data),
-# 			format='pandoc',
-# 			caption='Linate Flight Data Cleaned Up',
-# 			centering=TRUE)
-
 lm_paper_results <- c(0.175, 0.143, 0.510)
 flights_v_phone <- lm(flight_data$Flights ~ 
                       flight_data$Calls.and.SMS.Activity)
@@ -432,8 +407,7 @@ kable(lm_results,
 After wrangling the data and analyzing, we can see that the same values are obtained. Now, we can replicate the plots.  
 
 
-
-```{r figure4}
+```{r figure4, echo=FALSE}
 p1 <- ggplot(flight_data, aes(Calls.and.SMS.Activity, Flights)) + 
       geom_point(col='#354CB0') +
       geom_smooth(method ='lm', se=FALSE, colour='#959190', fullrange=TRUE,size=2) +
@@ -483,3 +457,5 @@ For comparison, here is the plot attached to the paper
 \begin{center}
 \includegraphics[width=0.5\textheight]{F4.large}
 \end{center}
+
+As it can be seen, our plots line up exactly with the ones published.  It should be noted that the authors of this paper made some assumptions that we do not agree with.  For one, they used flight data from a period 5-6 months after the data of cell phone activity and assumed that the flight schedule would remain consistent on a day by day schedule for the period over the phone data.  Given a lack of raw data for flights at the appropriate window, this assumption would need to be made, but it is one that could definitely be a major source of error.  The second issue is that the period of cell phone and internet activity recorded includes the Christmas holidays, which we would assume the number of passengers at the airport during this time would be different enough from outside the holiday period that it may be a source for error.  This potential source for error is minimized due to the way the grouping is done (summing all the recorded values for the same day of the week and hour of the day).
