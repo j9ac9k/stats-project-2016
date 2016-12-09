@@ -2,7 +2,9 @@
 title: "Quantifying crowd size with mobile phote and Twitter data - Final Report"
 author: "Ogi Moore and Connor Smith"
 date: "12/5/2016"
-output: pdf_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -60,6 +62,63 @@ kable(head(soccer_data),
 
 
 # Soccer Games Dataset
+
+First, the authors created a plot showing the various measures (calls and SMS data, internet activity, Twitter activity, and attendance) on a date scale. We are able to replicate this data using `R`  
+
+```{r figure2}
+p1 <- ggplot(san_siero.phone_data, aes(x=Timestamp, y=Calls.and.SMS.Activity)) + 
+      geom_line(colour='#354CB0',size=1) + scale_y_continuous(limits = c(0,600)) + 
+      labs(y='Call and SMS') + 
+      theme(panel.background = element_blank(),
+          legend.position='none',
+          axis.text.x=element_blank(),
+          axis.title.x=element_blank(),
+          axis.title.y=element_text(angle=90,size=8),
+          axis.ticks.x=element_blank(),
+          panel.border = element_rect(colour='black',fill=NA, size=1))
+p2 <- ggplot(san_siero.phone_data, aes(x=Timestamp, y=Internet.Activity)) + 
+      geom_line(colour='#7876C9',size=1) + scale_y_continuous(limits = c(0,200)) + 
+      labs(y='Internet') + 
+      theme(panel.background = element_blank(),
+          legend.position='none',
+          axis.text.x=element_blank(),
+          axis.title.x=element_blank(),
+          axis.title.y=element_text(angle=90,size=8),
+          axis.ticks.x=element_blank(),
+          panel.border = element_rect(colour='black',fill=NA, size=1))
+p3 <- ggplot(san_siero.twitter_data, aes(x=Timestamp, y=Twitter.Activity)) + 
+      geom_line(colour='#E41D1A',linetype="dashed",size=1) + scale_y_continuous(limits = c(0,200)) + 
+      geom_point(colour='#E41D1A',shape = 15,size=5,alpha=0.5) +
+      geom_point(colour='#E41D1A') +
+      labs(y='Twitter') + 
+      theme(panel.background = element_blank(),
+          legend.position='none',
+          axis.text.x=element_blank(),
+          axis.title.x=element_blank(),
+          axis.title.y=element_text(angle=90,size=8),
+          axis.ticks.x=element_blank(),
+          panel.border = element_rect(colour='black',fill=NA, size=1))
+p4 <- ggplot(san_siero.attendees, aes(x=Date, y=Attendees.at.San.Siro)) + 
+      geom_bar(stat='identity',colour='#959190',width=0.5) + 
+      scale_x_date(limits = c(as.Date('2013-11-01'), as.Date('2013-12-30')),breaks=c(as.Date(san_siero.attendees$Date))) + 
+      labs(y='Attendees') + 
+      theme(panel.background = element_blank(),
+          legend.position='none',
+          axis.title.y=element_text(angle=90,size=8),
+          axis.text.x=element_text(angle = 45,hjust=1),
+          panel.border = element_rect(colour='black',fill=NA, size=1))
+
+grid.draw(rbind(ggplotGrob(p1), 
+                ggplotGrob(p2), 
+                ggplotGrob(p3), 
+                ggplotGrob(p4), size="last"))
+```
+
+This chart shows that the activity data tends to peak in relation to the attendee data.  
+
+For comparison, here is the plot attached to the paper:
+
+\includegraphics[width=0.5\textheight]{F2.large}
 
 The authors performed a linear regression comparing calls and SMS activity, Internet activity, _Twitter_ activity to the number of attendees.  With `R` we are able to perform the same linear regression analysis with ease.
 
@@ -173,6 +232,7 @@ maxHeight = unit.pmax(p1$heights[2:3], p2$heights[2:3], p3$heights[2:3])
 p1$heights[2:3] <- maxHeight
 p2$heights[2:3] <- maxHeight
 grid.arrange(p1, p2, p3, ncol=3, nrow=1, respect=TRUE)
+p1
 ```
 
 
