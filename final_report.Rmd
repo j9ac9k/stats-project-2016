@@ -63,7 +63,8 @@ kable(head(soccer_data),
 
 The authors performed a linear regression comparing calls and SMS activity, Internet activity, _Twitter_ activity to the number of attendees.  With `R` we are able to perform the same linear regression analysis with ease.
 
-```{r soccer_analysis}
+```{r soccer_lm_results}
+lm_paper_results <- c(0.771, 0.937, 0.855)
 attendees_v_phone <- lm(soccer_data$Attendees.at.San.Siro ~ 
                           soccer_data$Calls.and.SMS.Activity)
 attendees_v_internet <- lm(soccer_data$Attendees.at.San.Siro ~ 
@@ -71,7 +72,7 @@ attendees_v_internet <- lm(soccer_data$Attendees.at.San.Siro ~
 attendees_v_twitter <- lm(soccer_data$Attendees.at.San.Siro ~ 
                             soccer_data$Twitter.Activity)
 
-lm_paper_results <- c(0.771, 0.937, 0.855)
+
 lm_duplication_results <- c(round(summary(attendees_v_phone)$adj.r.squared, 3),
                             round(summary(attendees_v_internet)$adj.r.squared, 3),
                             round(summary(attendees_v_twitter)$adj.r.squared, 3))
@@ -82,6 +83,16 @@ lm_results <- data.frame(lm_paper_results,
                                      'Internet Activity', 
                                      'Twitter Activity'))
 
+kable(lm_results,
+			format='pandoc',
+			centering=TRUE,
+			caption='Linear Regression R^2^ Values',
+			col.names = c('Published Results', 'Duplication Results'))
+```
+
+We can see that our $R^2$ values match up exactly, and next we check their Spearman correlation values.
+
+```{r soccer_cor_results}
 cor_paper_results <- c(0.927, 0.976, 0.924)
 cor_duplication_results <- c(round(cor(soccer_data$Attendees.at.San.Siro,
                                        soccer_data$Calls.and.SMS.Activity,
@@ -98,16 +109,6 @@ cor_results <- data.frame(cor_paper_results,
                           row.names=c('Calls and SMS Data', 
                                       'Internet Activity', 
                                       'Twitter Activity'))
-```
-
-Now that we've done our duplication of analysis, we can compare our results to those published.
-
-```{r soccer_results}
-kable(lm_results,
-			format='pandoc',
-			centering=TRUE,
-			caption='Linear Regression R^2^ Values',
-			col.names = c('Published Results', 'Duplication Results'))
 
 kable(cor_results,
 			format='pandoc',
@@ -115,22 +116,69 @@ kable(cor_results,
 			col.names = c('Published Results', 'Duplication Results'))
 ```
 
-Here we can see that the results we computed match up exactly with the results published.
-
-We can also replicate their plot
+Our spearman correlation values match up precisely as well.  Since we have come to the same conclusions, we can replicate their plot.
 
 ```{r figure_3}
+# Thanks to: https://stackoverflow.com/questions/10762287/how-can-i-format-axis-labels-with-exponents-with-ggplot2-and-scales
+scientific_formatter <- function(x){
+  output <- gsub("e", " %*% 10^", scientific_format()(x))
+  output <- gsub("^+", "^", output, fixed=TRUE)
+  output <- gsub("%*% 10^00", "", output, fixed=TRUE)
+  formatted_output <- parse(text=output)
+  return(formatted_output)
+}
+
 p1 <- ggplot(soccer_data, aes(Calls.and.SMS.Activity, 
                               Attendees.at.San.Siro)) + 
-	geom_point()
+	    geom_point(col='#354CB0') +
+      scale_y_continuous(labels=scientific_formatter) +
+      stat_smooth(method ='lm', se=FALSE, colour='#959190', fullrange=TRUE)  +
+      expand_limits(x=0, y=0) +
+      labs(x='Calls and SMS Activity', y='Attendees') +
+      theme(panel.background = element_blank(),
+            panel.border = element_rect(colour='black', fill=NA, size=1),
+            panel.grid.major = element_blank())
+      
 p2 <- ggplot(soccer_data, aes(Internet.Activity, 
                               Attendees.at.San.Siro)) +
-	geom_point()
+	    geom_point(colour='#7876C9') +
+      stat_smooth(method ='lm', se=FALSE, colour='#959190', fullrange=TRUE)  +
+      expand_limits(x=c(0, 200), y=0) +
+      labs(x='Internet activity') +
+      theme(aspect.ratio=1,
+            panel.background = element_blank(),
+            axis.text.y = element_blank(),
+            axis.ticks.y = element_blank(),
+            axis.title.y = element_blank(),
+            panel.border = element_rect(colour='black', fill=NA, size=1))
+
 p3 <- ggplot(soccer_data, aes(Twitter.Activity, 
                               Attendees.at.San.Siro)) + 
-	geom_point()
+	    geom_point(col='#E41D1A') +
+      stat_smooth(method ='lm', se=FALSE, colour='#959190', fullrange=TRUE) +
+      expand_limits(x=c(0, 200), y=0) +
+      labs(x='Twitter activity') +
+      theme(aspect.ratio=1,
+            panel.background = element_blank(),
+            axis.text.y = element_blank(),
+            axis.ticks.y = element_blank(),
+            axis.title.y = element_blank(),
+            panel.border = element_rect(colour='black', fill=NA, size=1))
+
+p1 <- ggplot_gtable(ggplot_build(p1))
+p2 <- ggplot_gtable(ggplot_build(p2))
+p3 <- ggplot_gtable(ggplot_build(p3))
+
+maxHeight = unit.pmax(p1$heights[2:3], p2$heights[2:3], p3$heights[2:3])
+p1$heights[2:3] <- maxHeight
+p2$heights[2:3] <- maxHeight
 grid.arrange(p1, p2, p3, ncol=3, nrow=1, respect=TRUE)
 ```
+
+
+For comparison, here is the plot attached to the paper:
+
+\includegraphics[width=0.5\textheight]{F3.large}
 
 
 # Airport Dataset
@@ -153,9 +201,9 @@ kable(head(linate.data),
 			centering=TRUE)
 ```
 
-The reader may notice here that the dates of the time-stamps do not match up (they are off by 6 months).  The authors explain that the way they compensate for this is that they line up the days of the week from the flights data, and assume that the flight schedule remains fairly consistent week for week.  They excluded November 1^st^, 2^nd^, and 3^rd^, as well as December 30^th^ and 31^st^.
+The reader may notice here that the dates of the time-stamps do not match up (they are off by 6 months).  The authors explain that the way they compensate for this is that they line up the days of the week from the flights data, and assume that the flight schedule remains fairly consistent week for week.  They excluded November 1^st^, 2^nd^, and 3^rd^, as well as December 30^th^ and 31^st^ as they were holidays.
 
-As the authors decided to look at the number of incoming flights up to an hour before, and the number of departing flights for two hours following, this made for having to modify the raw data substantially.  This was outside of our skill set in `R`, however we were able to make the modifications necessary in `Python`.  Should a reviewer wish to rerun this python code, they will need the Pandas library installed.  The `Python` code outputs a file titled 'Linate_wrangled.csv' which we will import into `R` to generate our statistics with.
+As the authors decided to look at the number of incoming flights up to an hour before, and the number of departing flights for two hours following, this made for having to modify the raw data substantially.  Furthermore, the authors then decided to average the calls and sms activity, internet activity and twitter activity associated with any given hour and weekday over the two month span.  This kind of data wrangling is outside of our skill set in `R`, however we were able to make the modifications necessary in `Python`.  Should a reviewer wish to rerun this python code, they will need the Pandas library installed.  The `Python` code outputs a file titled 'Linate_wrangled.csv' which we will import into `R` to generate our statistics with.  
 
 ```{python3 modified data wrangling}
 import numpy as np
@@ -168,10 +216,10 @@ linate_sched_data = pd.read_csv('./data/Linate_Flights_Schedule.csv',
 linate_sched_data['Day'] = linate_sched_data.index.weekday_name
 linate_sched_data['Hour'] = linate_sched_data.index.hour
 
-linate_sched_data['Flights'] = linate_sched_data['Departures'] + \
-                               np.roll(linate_sched_data['Departures'], 1) + \
-                               np.roll(linate_sched_data['Arrivals'], -1)
-linate_flight_data = pd.DataFrame(linate_sched_data.groupby(['Day', 'Hour']).sum())        
+linate_sched_data['Flights'] = np.roll(linate_sched_data['Departures'], -2) + \
+                               np.roll(linate_sched_data['Departures'], -1) + \
+                               np.roll(linate_sched_data['Arrivals'], 1)
+linate_flight_data = linate_sched_data.groupby(['Day', 'Hour']).sum()        
 linate_flight_data.drop(['Arrivals', 'Departures'], inplace=True, axis=1)
 linate_phone_data = pd.read_csv('./data/Linate_Data.csv',
                                parse_dates=[0],
@@ -193,19 +241,78 @@ result = pd.concat([linate_flight_data, linate_avg_phone_data], axis=1)
 result.to_csv('./data/Linate_wrangled.csv')
 ```
 
-Here, the python file generated a new csv file that we will import with `R` to do our analysis with.
+We can now import the wrangled CSV file that our python code generated and move on with our analysis.
 
-```{r flight_import}
-linate_flight_data <- read.csv('./data/Linate_wrangled.csv')
-kable(head(linate_flight_data),
+```{r flight_analysis}
+flight_data <- read.csv('./data/Linate_wrangled.csv')
+# kable(head(linate_flight_data),
+# 			format='pandoc',
+# 			caption='Linate Flight Data Cleaned Up',
+# 			centering=TRUE)
+
+lm_paper_results <- c(0.175, 0.143, 0.510)
+flights_v_phone <- lm(flight_data$Flights ~ 
+                      flight_data$Calls.and.SMS.Activity)
+flights_v_internet <- lm(flight_data$Flights ~ 
+                         flight_data$Internet.Activity)
+flights_v_twitter <- lm(flight_data$Flights ~ 
+                        flight_data$Twitter.Activity)
+
+
+lm_duplication_results <- c(round(summary(flights_v_phone)$adj.r.squared, 3),
+                            round(summary(flights_v_internet)$adj.r.squared, 3),
+                            round(summary(flights_v_twitter)$adj.r.squared, 3))
+
+lm_results <- data.frame(lm_paper_results, 
+                         lm_duplication_results,
+                         row.names=c('Calls and SMS Data', 
+                                     'Internet Activity', 
+                                     'Twitter Activity'))
+
+kable(lm_results,
 			format='pandoc',
-			caption='Linate Flight Data Cleaned Up',
-			centering=TRUE)
+			centering=TRUE,
+			caption='Linear Regression R^2^ Values',
+			col.names = c('Published Results', 'Duplication Results'))
 ```
+
+
+
+
 
 ```{r figure4}
-p1 <- ggplot(linate_flight_data, aes(Calls.and.SMS.Activity, Flights)) + geom_point()
-p2 <- ggplot(linate_flight_data, aes(Internet.Activity, Flights)) + geom_point()
-p3 <- ggplot(linate_flight_data, aes(Twitter.Activity, Flights)) + geom_point()
+p1 <- ggplot(flight_data, aes(Calls.and.SMS.Activity, Flights)) + 
+      geom_point(col='#354CB0') +
+      stat_smooth(method ='lm', se=FALSE, colour='#959190', fullrange=TRUE) +
+      labs(x='Calls and SMS Activity', y='no. flights') +
+      theme(aspect.ratio=1,
+            panel.background = element_blank(),
+            panel.border = element_rect(colour='black', fill=NA, size=1))
+
+p2 <- ggplot(flight_data, aes(Internet.Activity, Flights)) + 
+      geom_point(colour='#7876C9') +
+      labs(x='Internet activity') +
+      stat_smooth(method ='lm', se=FALSE, colour='#959190', fullrange=TRUE)  +
+      theme(aspect.ratio=1,
+            panel.background = element_blank(),
+            axis.text.y = element_blank(),
+            axis.ticks.y = element_blank(),
+            axis.title.y = element_blank(),
+            panel.border = element_rect(colour='black', fill=NA, size=1))
+
+p3 <- ggplot(flight_data, aes(Twitter.Activity, Flights)) + 
+      geom_point(col='#E41D1A') +
+      labs(x='Twitter activity') +
+      stat_smooth(method ='lm', se=FALSE, colour='#959190', fullrange=TRUE) +
+      theme(aspect.ratio=1,
+            panel.background = element_blank(),
+            axis.text.y = element_blank(),
+            axis.ticks.y = element_blank(),
+            axis.title.y = element_blank(),
+            panel.border = element_rect(colour='black', fill=NA, size=1))
 grid.arrange(p1, p2, p3, ncol=3, nrow=1, respect=TRUE)
 ```
+
+For comparison, here is the plot attached to the paper
+
+\includegraphics[width=0.5\textheight]{F4.large}
