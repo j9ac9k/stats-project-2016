@@ -241,7 +241,7 @@ grid.arrange(p1, p2, p3, ncol=3, nrow=1, respect=TRUE,widths=c(1.1,1,1))
 ```
 
 ```{r soccer_loocv}
-train_control <- trianControl(method='LOOCV')
+train_control <- trainControl(method='LOOCV')
 model <- train(Attendees.at.San.Siro ~ Calls.and.SMS.Activity + Internet.Activity + Twitter.Activity,
                data=soccer_data, 
                trControl=train_control, 
