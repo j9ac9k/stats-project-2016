@@ -109,7 +109,9 @@ p4 <- ggplot(san_siero.attendees, aes(x=Date, y=Attendees.at.San.Siro)) +
       geom_bar(stat='identity',colour='#959190',width=0.5) +       
       scale_y_continuous(breaks=seq(0,60000,30000)) + 
       coord_cartesian(ylim=c(0,80000)) +
-      scale_x_date(labels = date_format('%d %b'),limits = c(as.Date('2013-11-01'), as.Date('2013-12-30')),breaks=c(as.Date(san_siero.attendees$Date))) + 
+      scale_x_date(labels = date_format('%d %b'),limits = c(as.Date('2013-11-01'), 
+                                                            as.Date('2013-12-30')),
+                   breaks=c(as.Date(san_siero.attendees$Date))) + 
       labs(y='Attendees') + 
       theme(panel.background = element_blank(),
           legend.position='none',
@@ -121,14 +123,15 @@ grid.draw(rbind(ggplotGrob(p1),
                 ggplotGrob(p2), 
                 ggplotGrob(p3), 
                 ggplotGrob(p4), size="last"))
-p4
 ```
 
 This chart shows that the activity data tends to peak in relation to the attendee data.  
 
 For comparison, here is the plot attached to the paper:
 
-\includegraphics[width=0.5\textheight]{F2.large}
+\begin{center}
+\includegraphics[width=0.8\textheight]{F2.large}
+\end{center}
 
 The authors performed a linear regression comparing calls and SMS activity, Internet activity, _Twitter_ activity to the number of attendees.  With `R` we are able to perform the same linear regression analysis with ease.
 
@@ -140,18 +143,14 @@ attendees_v_internet <- lm(soccer_data$Attendees.at.San.Siro ~
                              soccer_data$Internet.Activity)
 attendees_v_twitter <- lm(soccer_data$Attendees.at.San.Siro ~ 
                             soccer_data$Twitter.Activity)
-
-
 lm_duplication_results <- c(round(summary(attendees_v_phone)$adj.r.squared, 3),
                             round(summary(attendees_v_internet)$adj.r.squared, 3),
                             round(summary(attendees_v_twitter)$adj.r.squared, 3))
-
 lm_results <- data.frame(lm_paper_results, 
                          lm_duplication_results,
                          row.names=c('Calls and SMS Data', 
                                      'Internet Activity', 
                                      'Twitter Activity'))
-
 kable(lm_results,
 			format='pandoc',
 			centering=TRUE,
@@ -172,13 +171,11 @@ cor_duplication_results <- c(round(cor(soccer_data$Attendees.at.San.Siro,
                              round(cor(soccer_data$Attendees.at.San.Siro,
                                        soccer_data$Twitter.Activity,
                                        method='spearman'), 3))
-
 cor_results <- data.frame(cor_paper_results,
                           cor_duplication_results,
                           row.names=c('Calls and SMS Data', 
                                       'Internet Activity', 
                                       'Twitter Activity'))
-
 kable(cor_results,
 			format='pandoc',
 			caption='Spearman Correlation Values',
@@ -262,7 +259,8 @@ p3 <- ggplot(soccer_data, aes(Twitter.Activity,
 # New code for p4
 model_2 <- lm(Attendees.at.San.Siro ~ Calls.and.SMS.Activity + Internet.Activity +
                 Twitter.Activity,data=soccer_data)
-attendence <- data.frame(predicted = predict.lm(model_2, newdata=soccer_data,
+attendence <- data.frame(predicted = predict.lm(model_2, 
+                                                newdata=soccer_data,
                                                 interval='prediction'),
                          actual = soccer_data$Attendees.at.San.Siro)
 
@@ -272,11 +270,13 @@ p4 <- ggplot(attendence, aes(x=actual,y=predicted.fit)) +
           geom_point(colour = "blue") +
           geom_smooth(method='lm', se=FALSE, colour='#959190', fullrange=TRUE,size=2) + 
           scale_y_continuous(labels=scientific_formatter,
-                             breaks=seq(10000,90000,40000),position='right') + 
-          coord_cartesian(ylim=c(0,90000),xlim=c(0,90000)) +
-          scale_x_continuous(labels=scientific_formatter, limits=c(-10000,100000),
                              breaks=seq(10000,90000,40000)) + 
-          labs(x='Actual',y='Predicted') +
+          coord_cartesian(ylim=c(0,90000), 
+                          xlim=c(0,90000)) +
+          scale_x_continuous(labels=scientific_formatter, 
+                             limits=c(-10000,100000),
+                             breaks=seq(10000,90000,40000)) + 
+          labs(x='Actual', y='Predicted') +
           theme(aspect.ratio=1,
                 panel.background = element_blank(),
                 panel.border = element_rect(colour='black', fill=NA, size=1))
@@ -295,34 +295,44 @@ grid.arrange(p1, p2, p3, p4, ncol=4, nrow=1, respect=TRUE,widths=c(1.15,1,1,1.3)
 This plot involves running a prediction -- OGI LEAVE NOTES HERE --  
 
 ```{r soccer_loocv}
-model_2 <- lm(Attendees.at.San.Siro ~ Calls.and.SMS.Activity + Internet.Activity + 
+model_2 <- lm(Attendees.at.San.Siro ~ Calls.and.SMS.Activity + 
+                Internet.Activity + 
                 Twitter.Activity,data=soccer_data)
-attendence <- data.frame(predicted = predict(model_2, newdata=soccer_data,
-                                                interval='prediction'),
+attendence <- data.frame(predicted = predict(model_2, 
+                                             newdata=soccer_data,
+                                             interval='prediction'),
                          actual = soccer_data$Attendees.at.San.Siro)
 
 p4 <- ggplot(attendence, aes(x=actual,y=predicted.fit)) +
           geom_errorbar(aes(ymin = predicted.lwr, ymax = predicted.upr), 
-                       colour = "blue", alpha = 0.2,size=4) + 
+                       colour = "blue", 
+                       alpha = 0.2,
+                       size=4) + 
           geom_point(colour = "blue") +
-          geom_smooth(method='lm', se=FALSE, colour='#959190', fullrange=TRUE,size=2) + 
-          scale_y_continuous(labels=scientific_formatter,breaks=seq(10000,90000,40000),
-                             position='right') + 
-          coord_cartesian(ylim=c(0,90000),xlim=c(0,90000)) +
-          scale_x_continuous(labels=scientific_formatter, limits=c(-10000,100000),
+          geom_smooth(method='lm', 
+                      se=FALSE, 
+                      colour='#959190', 
+                      fullrange=TRUE,
+                      size=2) + 
+          scale_y_continuous(labels=scientific_formatter,
+                             breaks=seq(10000,90000,40000)) + 
+          coord_cartesian(ylim=c(0,90000),
+                          xlim=c(0,90000)) +
+          scale_x_continuous(labels=scientific_formatter, 
+                             limits=c(-10000,100000),
                              breaks=seq(10000,90000,40000)) + 
           labs(x='Actual',y='Predicted') +
           theme(aspect.ratio=1,
                 panel.background = element_blank(),
                 panel.border = element_rect(colour='black', fill=NA, size=1))
-          
-p4
+    
 ```
 
 For comparison, here is the plot attached to the paper:
 
+\begin{center}
 \includegraphics[width=0.5\textheight]{F3.large}
-
+\end{center}
 
 # Airport Dataset
 
@@ -470,4 +480,6 @@ grid.arrange(p1, p2, p3, ncol=3, nrow=1, respect=TRUE)
 
 For comparison, here is the plot attached to the paper
 
+\begin{center}
 \includegraphics[width=0.5\textheight]{F4.large}
+\end{center}
