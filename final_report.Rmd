@@ -239,6 +239,20 @@ p2$heights[2:3] <- maxHeight
 grid.arrange(p1, p2, p3, ncol=3, nrow=1, respect=TRUE,widths=c(1.1,1,1))
 ```
 
+```{r soccer_loocv}
+train_control <- trianControl(method='LOOCV')
+model <- train(Attendees.at.San.Siro ~ Calls.and.SMS.Activity + Internet.Activity + Twitter.Activity,
+               data=soccer_data, 
+               trControl=train_control, 
+               method='lm')
+attendence <- data.frame(predicted = predict(model, newdata=soccer_data, interval='prediction'),
+                         actual = soccer_data$Attendees.at.San.Siro)
+
+ggplot(attendence, aes(actual,
+                       predicted)) +
+  geom_point() +
+  stat_smooth(method='lm', se=FALSE, fullrange=TRUE)
+```
 
 For comparison, here is the plot attached to the paper:
 
