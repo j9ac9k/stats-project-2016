@@ -67,28 +67,9 @@ san_siero.attendees$Date = as.Date(san_siero.attendees$Date)
 
 # Soccer Game Attendence
 
-The soccer data includes 3 raw files, one containing the dates of the soccer games as well as the attendence.  The phone data includes a measure of calls / SMS activity and Internet activity with a timestamp.  We will show later, that we are only interested in the date, and have no interest in the time.  The third file includes a measure of twitter activity with an associate date.  To do an analysis on this data, we need to merge the data into a common dataframe, where we are interested only in the maximum value of the calls / SMS activity and Internet activity numbers for a given day.  We then exclude days that did not have any soccer matches, and have our data.frame ready for analysis.
+The soccer data includes 3 raw files, one containing the dates of the soccer games as well as the attendence.  The phone data includes a measure of calls / SMS activity and Internet activity with a timestamp.  We will show later, that we are only interested in the date, and have no interest in the time.  The third file includes a measure of twitter activity with an associated date.  
 
-```{r soccer_cleanup}
-san_siero.daily_data <- aggregate(san_siero.phone_data$Calls.and.SMS.Activity, 
-                                  by=list(Category=san_siero.phone_data$Timestamp), 
-                                  FUN=max)
-san_siero.daily_data <- rename(san_siero.daily_data, c("x"="Calls.and.SMS.Activity"))
-san_siero.daily_data$Internet.Activity = aggregate(san_siero.phone_data$Internet.Activity, 
-                                         by=list(Cateogry=san_siero.phone_data$Timestamp), 
-                                         FUN=max)$x
-san_siero.daily_data$Twitter.Activity = san_siero.twitter_data$Twitter.Activity
-san_siero.daily_data <- rename(san_siero.daily_data, c("Category"="Date"))
-soccer_data <- merge(san_siero.daily_data, san_siero.attendees, 
-                                        by="Date")
-
-kable(head(soccer_data),
-			format='pandoc',
-			caption='Soccer Game Data',
-			centering=TRUE)
-```
-
-First, the authors created a plot showing the various measures (calls and SMS data, internet activity, Twitter activity, and attendance) vs date. We are able to replicate this data using `R`  
+First, the authors created a plot showing the various measures (calls and SMS data, internet activity, _Twitter_ activity, and attendance) vs date. We are able to replicate this plot.
 
 ```{r figure2, echo=FALSE}
 p1 <- ggplot(san_siero.phone_data, aes(x=Timestamp, y=Calls.and.SMS.Activity)) + 
@@ -155,6 +136,31 @@ This chart shows that the activity data tends to peak in relation to the attende
 \includegraphics[width=0.8\textheight]{F2.large}
 \end{center}
 
+## Grouping
+
+To analyze this data, we need to merge the data into a common dataframe, where we are interested only in the maximum value of the calls / SMS activity and Internet activity numbers for only days with a soccer match.  The authors assume that the highest mobile phone activity on the day of a soccer match would occur during the soccer match.  Because of this assumption, I can disregard the time component of the raw data, as I am looking for the maximum value in a given day.
+
+```{r soccer_cleanup}
+san_siero.daily_data <- aggregate(san_siero.phone_data$Calls.and.SMS.Activity, 
+                                  by=list(Category=san_siero.phone_data$Timestamp), 
+                                  FUN=max)
+san_siero.daily_data <- rename(san_siero.daily_data, c("x"="Calls.and.SMS.Activity"))
+san_siero.daily_data$Internet.Activity = aggregate(san_siero.phone_data$Internet.Activity, 
+                                         by=list(Cateogry=san_siero.phone_data$Timestamp), 
+                                         FUN=max)$x
+san_siero.daily_data$Twitter.Activity = san_siero.twitter_data$Twitter.Activity
+san_siero.daily_data <- rename(san_siero.daily_data, c("Category"="Date"))
+soccer_data <- merge(san_siero.daily_data, san_siero.attendees, 
+                                        by="Date")
+
+kable(head(soccer_data),
+			format='pandoc',
+			caption='Soccer Game Data',
+			centering=TRUE)
+```
+
+## Linear Modeling
+
 The authors then performed a linear regression comparing calls and SMS activity, Internet activity, _Twitter_ activity to the number of attendees.  With `R` we are able to perform the same linear regression analysis with ease.
 
 ```{r soccer_lm}
@@ -185,9 +191,12 @@ kable(lm_results,
 			col.names = c('Published Results', 'Duplication Results'))
 ```
 
-We can see that our $R^2$ values match up exactly.  The results show that the internet activity mobile phone data was the most accurate predictor of crowd size, having the highest R^2^ value.
+We can see that our $R^2$ values match up exactly.  The results show that the internet activity mobile phone data was the most accurate predictor of crowd size, having the highest R^2^ value.  
 
-Next, the authors evaluated the correlation to see how the relationship  holds up to a non-parametric analysis.  We are able to calculate the same correlation values.
+
+## Spearman Correlations 
+
+Next, the authors evaluate the correlation to see how the relationship  holds up to a non-parametric analysis.  
 
 ```{r soccer_cor_results}
 cor_paper_results <- c(0.927, 0.976, 0.924)
@@ -211,9 +220,10 @@ kable(cor_results,
 			col.names = c('Published Results', 'Duplication Results'))
 ```
 
-Our spearman correlation values match up precisely as well.  These results also indicate that Internet activity is the best guage for crowd size at the soccer games.  Since we have come to the same conclusions, we can replicate their plot.
+Our spearman correlation values match up with the published values as well.  These results also indicate that Internet activity is the best guage for crowd size at the soccer games.  Since we have come to the same conclusions, we can replicate their plot.
 
-## Linear Modeling  
+
+## Results
 
 Four plots were made by the authors to show the linear relationship that each of the measures of activity has with the amount of people in the area. The first three plots were very straight forward, comparing values for activity to attendance at soccer games.  The fourth plot was a little tricky.  
 
@@ -314,7 +324,6 @@ grid.arrange(p1, p2, p3, p4, ncol=4, nrow=1, respect=TRUE,widths=c(1.15, 1, 1, 1
 ```
 
 For the fourth plot, the authors said they performed a _leave-one-out cross-validation_ analysis, which we are able to do in `R`. Unfortunately we were unable to get confidence interval results based on the 'LOOCV' model method, so we then resorted to doing a generic linear model.  When we did the standard linear model (`lm`) method, we noticed the predicted numbers were the same as the predicted output from the _leave-one-out cross-validation_, but `R` provided confidence intervals.  The confidence intervals match up with the plot published in the paper.  
-
 For comparison, here is the plot attached to the paper:
 
 \begin{center}
@@ -346,6 +355,8 @@ kable(head(linate.data),
 ```
 
 The reader may notice here that the dates of the time-stamps do not match up (they are off by 6 months).  The authors explain that the way they compensate for this is that they line up the days of the week from the flights data, and assume that the flight schedule remains fairly consistent for each day of the week (the airport activity at any given time on a Monday in November will be similar to the same time on a Monday in May).  They excluded November 1^st^, 2^nd^, and 3^rd^, as well as December 30^th^ and 31^st^ as they were holidays.
+
+## Grouping
 
 As the authors decided to look at the number of incoming flights up to an hour before, and the number of departing flights for two hours following, this made for having to modify the raw data and doing a calculation for 'total flights'.  Furthermore, the authors then decided to average the calls and sms activity, internet activity and twitter activity associated with any given hour and weekday over the two month span.  This kind of data wrangling is outside of our skill set in `R`, however we were able to make the modifications necessary in `Python`.  Should a reviewer wish to run this python code, they will need the Pandas library installed.  The `Python` code outputs a file titled 'Linate_wrangled.csv' which we will import into `R` to generate our statistics with, the notebook is configured such that the following code cell will not be executed (in case the reviewer does not have Python with the Pandas library installed).  The python code outputs a file titled `Linate_wrangled.csv`, which we then import into `R` further along.
 
@@ -395,6 +406,7 @@ kable(head(flight_data),
 			centering=TRUE)
 ```
 
+## Linear Analysis
 
 ```{r flight_analysis}
 lm_paper_results <- c(0.175, 0.143, 0.510)
