@@ -287,7 +287,7 @@ p2$heights[2:3] <- maxHeight
 grid.arrange(p1, p2, p3, p4, ncol=4, nrow=1, respect=TRUE,widths=c(1.1, 1, 1, 1.1))
 ```
 
-For the fourth plot, the authors said they performed a _leave-one-out cross-validation_ analysis, which we are able to do in `R`. Unfortunately we were unable to get confidence interval results based on the 'LOOCV' model method, so we then resorted to doing a generic linear model.  When we did the standard linear model (lm) method, we noticed the predicted numbers were the same as the predicted output from the _leave-one-out cross-validation_, but `R` allowed for us to get confidence intervals.  The confidence intervals match up with the plot published in the paper.  We can both note that the 95% confidence intervals extend to include the linear projected curve.
+For the fourth plot, the authors said they performed a _leave-one-out cross-validation_ analysis, which we are able to do in `R`. Unfortunately we were unable to get confidence interval results based on the 'LOOCV' model method, so we then resorted to doing a generic linear model.  When we did the standard linear model (`lm`) method, we noticed the predicted numbers were the same as the predicted output from the _leave-one-out cross-validation_, but `R` provided confidence intervals.  The confidence intervals match up with the plot published in the paper.  
 
 For comparison, here is the plot attached to the paper:
 
@@ -297,7 +297,7 @@ For comparison, here is the plot attached to the paper:
 
 ## Conclusion
 
-From looking at calls/sms data, internet activity and _Twitter_ activity, it appears that internet activity is the best predictor to crowd sizes, although all methods show strong linear relationships and correlations.
+From looking at calls/sms data, internet activity and _Twitter_ activity, it appears that internet activity is the best predictor to crowd sizes, although all methods show strong linear relationships and correlations.  Also, when we compare the projected crowd size vs. the actual crowd size, and evaluate the 95% confidence interval of what the actual crowd size is based on the predicted value, we notice that the best fit curve falls within the 95% confidence interval for all the points.
 
 # Airport Dataset
 
