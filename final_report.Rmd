@@ -518,8 +518,6 @@ anova(bonus_data_weekday.lm)
 # summary(bonus_weekday_mcp, test = univariate())
 ```
 
-```
-
 # Appendix
 
 ## Data Sources
