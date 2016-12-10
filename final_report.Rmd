@@ -472,62 +472,90 @@ As it can be seen, our plots line up exactly with the ones published.  It should
 
 # Bonus Section
 
+We decides for our bonus analysis, we would look at the mobile phone and _Twitter_ activity at the Linates airport, on a per-day basis over the 2 month span, and see if there is a noticable difference day to day.  To do that, we re-use a segment of our `Python` code earlier.
+
+```{python bonus, eval=FALSE}
+linate_phone_data = pd.read_csv('./data/Linate_Data.csv',
+                               parse_dates=[0],
+                               infer_datetime_format=True)
+
+days_to_skip = pd.to_datetime(['2013-11-01',
+                               '2013-11-02',
+                               '2013-11-03',
+                               '2013-12-30',
+                               '2013-12-31']).date
+linate_phone_data = \
+    linate_phone_data[linate_phone_data['Timestamp'].dt.date.isin(days_to_skip) == False]
+linate_phone_data.set_index('Timestamp', drop=True, inplace=True)
+linate_phone_data['Day'] = linate_phone_data.index.weekday_name
+linate_phone_data['Hour'] = linate_phone_data.index.hour
+linate_phone_data.to_csv('Linate_bonus.csv')
+```
+
+We first read in the data our python code generated and generate a linear model with all the mobile phone related input factors.
+
 ```{r bonus_lm_combined, echo=FALSE}
 # Read in generated data with Day column
 bonus_data <- read.csv('./data/Linate_bonus.csv')
-bonus_data$Day <- factor(bonus_data$Day, levels =c('Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'))
+bonus_data$Day <- factor(bonus_data$Day, levels =c('Sunday',
+                                                   'Monday',
+                                                   'Tuesday',
+                                                   'Wednesday',
+                                                   'Thursday',
+                                                   'Friday',
+                                                   'Saturday'))
 
 # Plot residuals of total model
 linate.lm <- lm(Calls.and.SMS.Activity + Internet.Activity + Twitter.Activity ~ Day, data=bonus_data)
 model_data <- augment(linate.lm)
-p1 <- ggplot(model_data, aes(Day, .resid)) + geom_boxplot(aes(fill=Day)) + ylab('Residuals') + 
+```
+First, to make sure that an ANOVA is appropriate for this data-set, we need to meet three conditions.
+
+1.  The data must be iid
+2.  We must have the data come from a normal distrubition
+3.  The difference between variances should be no more than a factor of 5
+
+We meet the data must be iid requirement.  We believe the data does come from a normal distribution, as given enough samples, calls/sms activity, internet activity and twitter activity should eventually converge to a normal-like distribution.  To evaluate the differences in vairances, we can run the following code:
+
+```{r variance_diffs}
+max(aggregate(.resid ~ Day, model_data, var)$.resid) / min(aggregate(.resid ~ Day, model_data, var)$.resid)
+```
+
+We then plot the residuals
+
+```{r plot_residuals}
+ggplot(model_data, aes(Day, .resid)) + geom_boxplot(aes(fill=Day)) + ylab('Residuals') + 
   ggtitle('Residuals of total model') + 
   theme(panel.background = element_blank(),
         panel.border = element_rect(colour='black', fill=NA, size=1))
-
-# Plot residuals of only Twitter
-linate_twitter.lm <- lm(Twitter.Activity ~ Day, data=bonus_data)
-model_twitter <- augment(linate_twitter.lm)
-p2 <- ggplot(model_twitter, aes(Day, .resid)) + geom_boxplot(aes(fill=Day)) + ylab('Residuals') + 
-  ggtitle('Residuals of Twitter data') + 
-  theme(panel.background = element_blank(),
-        panel.border = element_rect(colour='black', fill=NA, size=1))
-
-grid.arrange(p1, p2, ncol=1, nrow=2, respect=FALSE)
 ```
 
-```{r anova_tukey, echo=FALSE}
-bonus_data.lm <- lm(Calls.and.SMS.Activity + Internet.Activity + Twitter.Activity ~ Day, data=bonus_data)
-anova(bonus_data.lm)
+The null hypothesis here is that any day is equivalent to any other day of the week based on mobile phone activity.  The alternative hypothesis is that not all days are equivalent.
+
+```{r anova}
+anova(linate.lm)
 ```
 
-```{r, include=FALSE}
-bonus_mcp <- glht(bonus_data.lm,mcp(Day = "Tukey"))
-confint(bonus_mcp)
-```
+Here, we can see that with a very high F-value and a very low P-value we can reject the null hypothesis.  
 
-```{r}
-# Tukey Analysis
-summary(bonus_mcp, test = univariate())
-```
+From looking at the data, it's apparent that the weekend days look different than the week-days, so let's exclude the weekend days and do the ANOVA again.
 
-```{r anova_weekdays, echo=FALSE}
+```{r anova_weekdays}
 # Subset the data to only weekdays
 weekdays <- c('Monday','Tuesday','Wednesday','Thursday','Friday')
 bonus_data_weekday <- bonus_data %>%
   filter(Day %in% weekdays)
 
 # Linear Model for Weekdays data
-bonus_data_weekday.lm <- lm(Calls.and.SMS.Activity + Internet.Activity + Twitter.Activity ~ Day, data=bonus_data_weekday)
+linate_weekday.lm <- lm(Calls.and.SMS.Activity + 
+                          Internet.Activity + 
+                          Twitter.Activity ~ Day, data=bonus_data_weekday)
 
 # ANOVA
-anova(bonus_data_weekday.lm)
-
-# Tukey
-# bonus_weekday_mcp <- glht(bonus_data_weekday.lm,mcp(Day = "Tukey"))
-# confint(bonus_weekday_mcp)
-# summary(bonus_weekday_mcp, test = univariate())
+anova(linate_weekday.lm)
 ```
+Here we get a low F-value and a high P-value, indicating that we should accept the null hypothesis that each weekday is eqauivalent.
+
 
 # Appendix
 
