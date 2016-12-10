@@ -40,7 +40,7 @@ san_siero.twitter_data$Timestamp = as.Date(san_siero.twitter_data$Timestamp)
 san_siero.attendees$Date = as.Date(san_siero.attendees$Date)
 ```
 
-# Soccer Games Dataset
+# Soccer Game Attendence
 
 The soccer data includes 3 raw files, one containing the dates of the soccer games as well as the attendence.  The phone data includes a measure of calls / SMS activity and Internet activity with a timestamp.  We will show later, that we are only interested in the date, and have no interest in the time.  The third file includes a measure of twitter activity with an associate date.  To do an analysis on this data, we need to merge the data into a common dataframe, where we are interested only in the maximum value of the calls / SMS activity and Internet activity numbers for a given day.  We then exclude days that did not have any soccer matches, and have our data.frame ready for analysis.
 
@@ -299,9 +299,9 @@ For comparison, here is the plot attached to the paper:
 
 From looking at calls/sms data, internet activity and _Twitter_ activity, it appears that internet activity is the best predictor to crowd sizes, although all methods show strong linear relationships and correlations.  Also, when we compare the projected crowd size vs. the actual crowd size, and evaluate the 95% confidence interval of what the actual crowd size is based on the predicted value, we notice that the best fit curve falls within the 95% confidence interval for all the points.
 
-# Airport Dataset
+# Airport Crowd Approximations
 
-In the airport dataset the authors took a different method to approximating the crowd size.  They approximated the number of people at the airport based on the number of flights to and from the airport.  More specifically, they summed the flights departing in the two hour window following the time of interest and the number of incoming flights in the hour leading up to the time of interest.  The raw data provides the number of flights arriving and departing the airport on an hour by hour basis over a 1 week period.
+In the airport dataset the authors took a different method to approximating the crowd size.  They approximated the number of people at the airport based on the number of arriving and departing flights.  More specifically, they summed the flights departing in the two hour window following the time of interest and the number of incoming flights in the hour leading up to the time of interest, and used the result as a relative approximation of crowd size.  The raw data provides the number of flights arriving and departing the airport on an hour by hour basis over a 1 week period.
 
 ```{r airport_flight_data}
 kable(head(linate.flight_schedule),
@@ -310,7 +310,7 @@ kable(head(linate.flight_schedule),
 			centering=TRUE)
 ```
 
-The authors also provide a relative quantity of calls and SMS activity and internet activity, as well as Twitter activity
+The authors also provide a relative quantity of calls and SMS activity and internet activity, as well as _Twitter_ activity
 
 ```{r airport_phone_data}
 kable(head(linate.data),
@@ -319,11 +319,11 @@ kable(head(linate.data),
 			centering=TRUE)
 ```
 
-The reader may notice here that the dates of the time-stamps do not match up (they are off by 6 months).  The authors explain that the way they compensate for this is that they line up the days of the week from the flights data, and assume that the flight schedule remains fairly consistent week for week.  They excluded November 1^st^, 2^nd^, and 3^rd^, as well as December 30^th^ and 31^st^ as they were holidays.
+The reader may notice here that the dates of the time-stamps do not match up (they are off by 6 months).  The authors explain that the way they compensate for this is that they line up the days of the week from the flights data, and assume that the flight schedule remains fairly consistent for each day of the week (the airport activity at any given time on a Monday in November will be similar to the same time on a Monday in Mat).  They excluded November 1^st^, 2^nd^, and 3^rd^, as well as December 30^th^ and 31^st^ as they were holidays.
 
-As the authors decided to look at the number of incoming flights up to an hour before, and the number of departing flights for two hours following, this made for having to modify the raw data substantially.  Furthermore, the authors then decided to average the calls and sms activity, internet activity and twitter activity associated with any given hour and weekday over the two month span.  This kind of data wrangling is outside of our skill set in `R`, however we were able to make the modifications necessary in `Python`.  Should a reviewer wish to rerun this python code, they will need the Pandas library installed.  The `Python` code outputs a file titled 'Linate_wrangled.csv' which we will import into `R` to generate our statistics with.  
+As the authors decided to look at the number of incoming flights up to an hour before, and the number of departing flights for two hours following, this made for having to modify the raw data and doing a calculation for 'total flights'.  Furthermore, the authors then decided to average the calls and sms activity, internet activity and twitter activity associated with any given hour and weekday over the two month span.  This kind of data wrangling is outside of our skill set in `R`, however we were able to make the modifications necessary in `Python`.  Should a reviewer wish to run this python code, they will need the Pandas library installed.  The `Python` code outputs a file titled 'Linate_wrangled.csv' which we will import into `R` to generate our statistics with, the notebook is configured such that the following code cell will not be executed (in case the reviewer does not have Python with the Pandas library installed).  The python code outputs a file titled `Linate_wrangled.csv`, which we then import into `R` further along.
 
-```{python3 modified_data_wrangling, eval=FALSE}
+```{python modified_data_wrangling, eval=FALSE}
 import numpy as np
 import pandas as pd
 import datetime as dt
