@@ -1,0 +1,54 @@
+---
+title: "Project Report"
+author: "Meghana Inamanamelluri"
+date: "12/9/2016"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r include=FALSE}
+#install.packages("tidyverse")
+#install.packages("rio")
+```
+
+
+```{r include=FALSE}
+library(resampledata)
+library(tidyverse)
+library(rio)
+library(ggplot2)
+```
+
+
+## Do Children Copy an Expert or a Majority? Examining Selective Learning in Instrumental and Normative Contexts
+
+
+This study examined whether instrumental and normative learning contexts differentially influence 4- to 7-year-old children’s social learning strategies; specifically, their dispositions to copy an expert versus a majority consensus
+
+## Experiment 1 :
+
+In Experiment 1, they have tested whether 4-to-7-year-olds selectively copy an instrumentally competent expert over an incompetent individual.They included 4-to-7-year-old children to examine whether there is a developmental progression in the degree of copying faithfully and whether there are differences in development according to context.
+
+
+### Converting and Reading Dataset1 :
+
+
+```{r}
+# convert .SAV file to .csv file
+data_source <- "/Users/meghanainamanamelluri/Desktop/Final Project/DataSets/S1_Dataset.SAV"
+convert(data_source,"/Users/meghanainamanamelluri/Desktop/Maths/DataSets/S1_Dataset.csv")
+```
+
+
+
+```{r read_data_from_csv,}
+#reading the csv file
+data_source <- "/Users/meghanainamanamelluri/Desktop/Maths/DataSets/S1_Dataset.csv"
+s1_data <- read_csv(data_source)
+glimpse(s1_data)
+```
