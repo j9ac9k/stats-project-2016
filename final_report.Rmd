@@ -20,36 +20,10 @@ library(knitr)
 # Introduction
 
 We elected to replicate the findings of Federico Botta, Helen Susannah Moat, and Tobias Preis's paper on [Quantifying crowd size with mobile phone and _Twitter_ data](http://rsos.royalsocietypublishing.org/content/2/5/150162).  In the paper, they look at a number of soccer games with a known attendence and known phone, internet and twitter acitivity; and they evaluate the similar phone and internet and twitter acitivty in comparison to a number of flights over a several week period.   
-# Data Sources  
-
-## SMS, Call, and Internet Data  
-Data collected for internet, phone calls, SMS, and Twitter data was provided by the Telecom Italia Big Data Challenge. The data was acquired and anonymized by Telecom Italia. The data originates from Milan and surrounding areas between 1 November 2013 and 31 December 2013.  
-  
-All interactions on the mobile network generate Call Detail Records (CDRs). These are acquired by the following parameters:  
-- SMS Data  
-    - CDR is generated for each SMS sent and recieved  
-- Call Data  
-    - CDR is generated for each call sent and recieved  
-- Internet Access: CDR is generated for the following events:  
-    - Internet connection is opened  
-    - Internet Connection is closed  
-    - Internet Connection is open and 15 minutes has passed since last CDR  
-    - Internet Connection is open and 5 MB have been transferred since last CDR was generated  
-  
-After being collected, the data was rescaled for privacy reasons. The SMS and call data were scaled using the same factor, while internet data was scaled using a different factor.  
-  
-## Twitter Data  
-Similarly to the SMS, Call, and Internet Data, geo-localised tweets were collected from the Big Data Challenge (same time and location). It is not indicated that any data rescaling was completed. The paper does not state that the Twitter data is "normalized," so it is assumed to be untouched.  
-  
-## Football Match Attendees  
-Football match attendance was retrieved from the [Italian National Football League 'Serie A' official website](http://www.legaseriea.it/it/lega-calcio/regolamenti-e-documenti/dati-statistici-su-incassi-e-spettatori). The final three games attendance data was obtained from two online newspapers ([Calciomercato](http://www.calciomercato.com/news/inter-trapani-3-2-il-tabellino-919259), [Milan News 1](http://www.milannews.it/il-match/quasi-cinquantamila-spettatori-riempiono-san-siro-105483), and [Milan News 2](http://www.milannews.it/il-match/milan-ajax-superati-i-61mila-spettatori-a-san-siro-130840)).  
-  
-## Airport Data  
-The airport data was retrieved from the [Linate Airport website](http://www.milanolinate-airport.com/it). This data is only available for the current date + 4 days, so the data collected was for Monday 5 May 2014 through 11 May 2014. The measures used for estimating each hour of passenger amounts was calculated by summing the number of flights departing in the next 2 hours and the number of flights arriving in the past hour.  
 
 # Data Import
 
-The data is in very good shape, but we do need to tell `R` that the timestamps are in-fact date-time objects, and not just generic strings.
+The data is in very good shape, but we do need to tell `R` that the timestamps are in-fact date-time objects, and not just generic strings.  The source of the data is explained in the Appendix.
 
 ```{r import}
 san_siero.attendees = read.csv('./data/Attendees_San_Siro.csv')
@@ -417,7 +391,6 @@ flights_v_internet <- lm(flight_data$Flights ~
 flights_v_twitter <- lm(flight_data$Flights ~ 
                         flight_data$Twitter.Activity)
 
-
 lm_duplication_results <- c(round(summary(flights_v_phone)$adj.r.squared, 3),
                             round(summary(flights_v_internet)$adj.r.squared, 3),
                             round(summary(flights_v_twitter)$adj.r.squared, 3))
@@ -492,3 +465,32 @@ For comparison, here is the plot attached to the paper
 ## Conclusion  
 
 As it can be seen, our plots line up exactly with the ones published.  It should be noted that the authors of this paper made some assumptions that we do not agree with.  For one, they used flight data from a period 5-6 months after the data of cell phone activity and assumed that the flight schedule would remain consistent on a day by day schedule for the period over the phone data.  Given a lack of raw data for flights at the appropriate window, this assumption would need to be made, but it is one that could definitely be a major source of error.  The second issue is that the period of cell phone and internet activity recorded includes the Christmas holidays, which we would assume the number of passengers at the airport during this time would be different enough from outside the holiday period that it may be a source for error.  This potential source for error is minimized due to the way the grouping is done (summing all the recorded values for the same day of the week and hour of the day).
+
+# Appendix
+
+## Data Sources
+
+### SMS, Call, and Internet Data  
+Data collected for internet, phone calls, SMS, and Twitter data was provided by the Telecom Italia Big Data Challenge. The data was acquired and anonymized by Telecom Italia. The data originates from Milan and surrounding areas between 1 November 2013 and 31 December 2013.  
+  
+All interactions on the mobile network generate Call Detail Records (CDRs). These are acquired by the following parameters:  
+- SMS Data  
+    - CDR is generated for each SMS sent and recieved  
+- Call Data  
+    - CDR is generated for each call sent and recieved  
+- Internet Access: CDR is generated for the following events:  
+    - Internet connection is opened  
+    - Internet Connection is closed  
+    - Internet Connection is open and 15 minutes has passed since last CDR  
+    - Internet Connection is open and 5 MB have been transferred since last CDR was generated  
+  
+After being collected, the data was rescaled for privacy reasons. The SMS and call data were scaled using the same factor, while internet data was scaled using a different factor.  
+  
+### Twitter Data  
+Similarly to the SMS, Call, and Internet Data, geo-localised tweets were collected from the Big Data Challenge (same time and location). It is not indicated that any data rescaling was completed. The paper does not state that the Twitter data is "normalized," so it is assumed to be untouched.  
+  
+### Football Match Attendees  
+Football match attendance was retrieved from the [Italian National Football League 'Serie A' official website](http://www.legaseriea.it/it/lega-calcio/regolamenti-e-documenti/dati-statistici-su-incassi-e-spettatori). The final three games attendance data was obtained from two online newspapers ([Calciomercato](http://www.calciomercato.com/news/inter-trapani-3-2-il-tabellino-919259), [Milan News 1](http://www.milannews.it/il-match/quasi-cinquantamila-spettatori-riempiono-san-siro-105483), and [Milan News 2](http://www.milannews.it/il-match/milan-ajax-superati-i-61mila-spettatori-a-san-siro-130840)).  
+
+### Airport Data  
+The airport data was retrieved from the [Linate Airport website](http://www.milanolinate-airport.com/it). This data is only available for the current date + 4 days, so the data collected was for Monday 5 May 2014 through 11 May 2014. The measures used for estimating each hour of passenger amounts was calculated by summing the number of flights departing in the next 2 hours and the number of flights arriving in the past hour.  
