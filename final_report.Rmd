@@ -472,14 +472,12 @@ As it can be seen, our plots line up exactly with the ones published.  It should
 # Bonus Section
 
 ```{r bonus}
-linate.lm <- lm(flight_data$Flights ~ flight_data$Calls.and.SMS.Activity + flight_data$Internet.Activity + flight_data$Twitter.Activity)
+bonus_data <- read.csv('./data/Linate_bonus.csv')
+linate.lm <- lm(Calls.and.SMS.Activity + Internet.Activity + Twitter.Activity ~ Day, data=bonus_data)
 model_data <- augment(linate.lm)
-
-# Won't work because no 'Days' in model_data
-# ggplot(model_data, aes(Days, .resid)) + geom_boxplot(aes(fill=Days)) + ylab('Residuals')
-aggregation <- aggregate(Flights ~ Calls.and.SMS.Activity + Internet.Activity + Twitter.Activity, flight_data, var)
-
+ggplot(model_data, aes(Day, .resid)) + geom_boxplot(aes(fill=Day)) + ylab('Residuals')
 ```
+
 
 
 # Appendix
