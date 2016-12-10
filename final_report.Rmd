@@ -491,19 +491,15 @@ ggplot(model_calls, aes(Day, .resid)) + geom_boxplot(aes(fill=Day)) + ylab('Resi
 ggplot(model_internet, aes(Day, .resid)) + geom_boxplot(aes(fill=Day)) + ylab('Residuals')
 ggplot(model_twitter, aes(Day, .resid)) + geom_boxplot(aes(fill=Day)) + ylab('Residuals')
 ```
+```{r anova_tukey}
+bonus_data.lm <- lm(Calls.and.SMS.Activity + Internet.Activity + Twitter.Activity ~ Day, data=bonus_data)
+anova(bonus_data.lm)
 
-```{r bonus_boxes}
-bonus_data$Day <- factor(bonus_data$Day, levels =c('Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'))
-
-p1 <- ggplot(bonus_data, aes(x = Day, y = Calls.and.SMS.Activity)) + 
-      scale_x_discrete(name = "Day of Week") + 
-      scale_y_continuous(name = "Call and SMS activity") +     
-      ggtitle("Boxplot of Call and SMS activity count by day of week") + 
-      geom_boxplot(colour = "black", fill = "#56B4E9") + 
-      theme(panel.background = element_blank(),
-                panel.border = element_rect(colour='black', fill=NA, size=1))
-p1
+bonus_mcp <- glht(bonus_data.lm,mcp(Day = "Tukey"))
+confint(bonus_mcp)
+summary(bonus_mcp, test = univariate())
 ```
+
 
 # Appendix
 
