@@ -480,20 +480,20 @@ bonus_data$Day <- factor(bonus_data$Day, levels =c('Sunday','Monday','Tuesday','
 # Plot residuals of total model
 linate.lm <- lm(Calls.and.SMS.Activity + Internet.Activity + Twitter.Activity ~ Day, data=bonus_data)
 model_data <- augment(linate.lm)
-ggplot(model_data, aes(Day, .resid)) + geom_boxplot(aes(fill=Day)) + ylab('Residuals') + 
+p1 <- ggplot(model_data, aes(Day, .resid)) + geom_boxplot(aes(fill=Day)) + ylab('Residuals') + 
   ggtitle('Residuals of total model') + 
   theme(panel.background = element_blank(),
         panel.border = element_rect(colour='black', fill=NA, size=1))
-```
 
-```{r bonus_twitter, echo=FALSE}
 # Plot residuals of only Twitter
 linate_twitter.lm <- lm(Twitter.Activity ~ Day, data=bonus_data)
 model_twitter <- augment(linate_twitter.lm)
-ggplot(model_twitter, aes(Day, .resid)) + geom_boxplot(aes(fill=Day)) + ylab('Residuals') + 
+p2 <- ggplot(model_twitter, aes(Day, .resid)) + geom_boxplot(aes(fill=Day)) + ylab('Residuals') + 
   ggtitle('Residuals of Twitter data') + 
   theme(panel.background = element_blank(),
         panel.border = element_rect(colour='black', fill=NA, size=1))
+
+grid.arrange(p1, p2, ncol=1, nrow=2, respect=FALSE)
 ```
 
 ```{r anova_tukey, echo=FALSE}
