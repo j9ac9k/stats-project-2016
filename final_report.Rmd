@@ -500,6 +500,25 @@ confint(bonus_mcp)
 summary(bonus_mcp, test = univariate())
 ```
 
+```{r anova_weekdays}
+# Subset the data to only weekdays
+weekdays <- c('Monday','Tuesday','Wednesday','Thursday','Friday')
+bonus_data_weekday <- bonus_data %>%
+  filter(Day %in% weekdays)
+
+# Linear Model for Weekdays data
+bonus_data_weekday.lm <- lm(Calls.and.SMS.Activity + Internet.Activity + Twitter.Activity ~ Day, data=bonus_data_weekday)
+
+# ANOVA
+anova(bonus_data_weekday.lm)
+
+# Tukey
+# bonus_weekday_mcp <- glht(bonus_data_weekday.lm,mcp(Day = "Tukey"))
+# confint(bonus_weekday_mcp)
+# summary(bonus_weekday_mcp, test = univariate())
+```
+
+```
 
 # Appendix
 
