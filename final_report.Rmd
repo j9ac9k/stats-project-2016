@@ -44,7 +44,7 @@ san_siero.attendees$Date = as.Date(san_siero.attendees$Date)
 
 # Soccer Game Attendence
 
-The soccer data includes 3 raw files, one containing the dates of the soccer games as well as the attendence.  The phone data includes a measure of calls / SMS activity and Internet activity with a timestamp.  We will show later, that we are only interested in the date, and have no interest in the time.  The third file includes a measure of twitter activity with an associated date.  
+The soccer data includes 3 raw files, one containing the dates of the soccer games as well as the attendence.  The phone data includes a measure of calls / SMS activity and Internet activity with a timestamp.  We will show later that we are only interested in the date and have no interest in the time.  The third file includes a measure of twitter activity with an associated date.  
 
 First, the authors created a plot showing the various measures (calls and SMS data, internet activity, _Twitter_ activity, and attendance) vs date. We are able to replicate this plot.
 
@@ -492,7 +492,9 @@ linate_phone_data['Hour'] = linate_phone_data.index.hour
 linate_phone_data.to_csv('Linate_bonus.csv')
 ```
 
-We first read in the data our python code generated and generate a linear model with all the mobile phone related input factors.
+We first read in the data our python code generated and generate a linear model with all the mobile phone related input factors.  
+
+Here is the data expressed in boxplots for each factor by the day of the week.  
 
 ```{r bonus_lm_combined, echo=FALSE}
 # Read in generated data with Day column
@@ -536,8 +538,7 @@ linate.lm <- lm(Calls.and.SMS.Activity + Internet.Activity + Twitter.Activity ~ 
 model_data <- augment(linate.lm)
 ```
 
-
-
+The Calls/SMS and Internet data look very consistent, but the _Twitter_ data looks slightly odd. This is due to the _Twitter_ data being measured in much smaller numbers and is expected. Since we are looking at the effect of all factors on the attendance, this should be masked for the most part.  
 
 First, to make sure that an ANOVA is appropriate for this data-set, we need to meet three conditions.
 
@@ -584,7 +585,7 @@ linate_weekday.lm <- lm(Calls.and.SMS.Activity +
 # ANOVA
 anova(linate_weekday.lm)
 ```
-Here we get a low F-value and a high P-value, indicating that we should accept the null hypothesis that each weekday is eqauivalent.
+Here we get a low F-value and a high P-value, indicating that we should accept the null hypothesis that each weekday is eqauivalent.  
 
 
 # Appendix
