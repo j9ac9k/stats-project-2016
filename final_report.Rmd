@@ -15,12 +15,12 @@ library(grid)
 library(plyr)
 library(gridExtra)
 library(knitr)
-library(caret)
 ```
 
 # Introduction
 
-We elected to replicate the findings of Federico Botta, Helen Susannah Moat, and Tobias Preis's paper on [Quantifying crowd size with mobile phone and _Twitter_ data](http://rsos.royalsocietypublishing.org/content/2/5/150162).  In the paper, they look at a number of soccer games with a known attendence and known phone, internet and twitter acitivity; and they evaluate the similar phone and internet and twitter acitivty in comparison to a number of flights over a several week period.
+We elected to replicate the findings of Federico Botta, Helen Susannah Moat, and Tobias Preis's paper on [Quantifying crowd size with mobile phone and _Twitter_ data](http://rsos.royalsocietypublishing.org/content/2/5/150162).  In the paper, they look at a number of soccer games with a known attendence and known phone, internet and twitter acitivity; and they evaluate the similar phone and internet and twitter acitivty in comparison to a number of flights over a several week period.  
+
 
 # Data Import
 
@@ -320,7 +320,7 @@ kable(head(linate.data),
 			centering=TRUE)
 ```
 
-The reader may notice here that the dates of the time-stamps do not match up (they are off by 6 months).  The authors explain that the way they compensate for this is that they line up the days of the week from the flights data, and assume that the flight schedule remains fairly consistent for each day of the week (the airport activity at any given time on a Monday in November will be similar to the same time on a Monday in Mat).  They excluded November 1^st^, 2^nd^, and 3^rd^, as well as December 30^th^ and 31^st^ as they were holidays.
+The reader may notice here that the dates of the time-stamps do not match up (they are off by 6 months).  The authors explain that the way they compensate for this is that they line up the days of the week from the flights data, and assume that the flight schedule remains fairly consistent for each day of the week (the airport activity at any given time on a Monday in November will be similar to the same time on a Monday in May).  They excluded November 1^st^, 2^nd^, and 3^rd^, as well as December 30^th^ and 31^st^ as they were holidays.
 
 As the authors decided to look at the number of incoming flights up to an hour before, and the number of departing flights for two hours following, this made for having to modify the raw data and doing a calculation for 'total flights'.  Furthermore, the authors then decided to average the calls and sms activity, internet activity and twitter activity associated with any given hour and weekday over the two month span.  This kind of data wrangling is outside of our skill set in `R`, however we were able to make the modifications necessary in `Python`.  Should a reviewer wish to run this python code, they will need the Pandas library installed.  The `Python` code outputs a file titled 'Linate_wrangled.csv' which we will import into `R` to generate our statistics with, the notebook is configured such that the following code cell will not be executed (in case the reviewer does not have Python with the Pandas library installed).  The python code outputs a file titled `Linate_wrangled.csv`, which we then import into `R` further along.
 
