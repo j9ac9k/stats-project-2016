@@ -184,6 +184,8 @@ kable(cor_results,
 
 Our spearman correlation values match up precisely as well.  Since we have come to the same conclusions, we can replicate their plot.
 
+## Linear Modeling  
+4 plots were made by the authors to show the linear relationship that each of the measures of activity has with the amount of people in the area. The first three plots were very straight forward, comparing values for activity to attendance at soccer games.  
 ```{r figure_3, echo=FALSE}
 # Thanks to: https://stackoverflow.com/questions/10762287/
 #            how-can-i-format-axis-labels-with-exponents-with-ggplot2-and-scales
@@ -240,8 +242,9 @@ p3 <- ggplot(soccer_data, aes(Twitter.Activity,
             axis.title.y = element_blank(),
             panel.border = element_rect(colour='black', fill=NA, size=1))
 
-# Prep p4
+#Moved to its own plot
 
+# Prep p4
 # train_control <- trainControl(method='LOOCV')
 # model <- train(Attendees.at.San.Siro ~ Calls.and.SMS.Activity + 
 #                  Internet.Activity + Twitter.Activity,data=soccer_data, 
@@ -257,14 +260,77 @@ p3 <- ggplot(soccer_data, aes(Twitter.Activity,
 #       stat_smooth(method='lm', se=FALSE, fullrange=TRUE)
 # 
 # New code for p4
+# model_2 <- lm(Attendees.at.San.Siro ~ Calls.and.SMS.Activity + Internet.Activity +
+#                 Twitter.Activity,data=soccer_data)
+# attendence <- data.frame(predicted = predict.lm(model_2, 
+#                                                 newdata=soccer_data,
+#                                                 interval='prediction'),
+#                          actual = soccer_data$Attendees.at.San.Siro)
+# 
+# p4 <- ggplot(attendence, aes(x=actual,y=predicted.fit)) +
+#           geom_errorbar(aes(ymin = predicted.lwr, ymax = predicted.upr), 
+#                        colour = "blue", alpha = 0.2,size=4) + 
+#           geom_point(colour = "blue") +
+#           geom_smooth(method='lm', se=FALSE, colour='#959190', fullrange=TRUE,size=2) + 
+#           scale_y_continuous(labels=scientific_formatter,
+#                              breaks=seq(10000,90000,40000)) + 
+#           coord_cartesian(ylim=c(0,90000), 
+#                           xlim=c(0,90000)) +
+#           scale_x_continuous(labels=scientific_formatter, 
+#                              limits=c(-10000,100000),
+#                              breaks=seq(10000,90000,40000)) + 
+#           labs(x='Actual', y='Predicted') +
+#           theme(aspect.ratio=1,
+#                 panel.background = element_blank(),
+#                 panel.border = element_rect(colour='black', fill=NA, size=1))
+
+p1 <- ggplot_gtable(ggplot_build(p1))
+p2 <- ggplot_gtable(ggplot_build(p2))
+p3 <- ggplot_gtable(ggplot_build(p3))
+
+
+maxHeight = unit.pmax(p1$heights[2:3], p2$heights[2:3], p3$heights[2:3])
+p1$heights[2:3] <- maxHeight
+p2$heights[2:3] <- maxHeight
+grid.arrange(p1, p2, p3, ncol=3, nrow=1, respect=TRUE,widths=c(1.1,1,1))
+```
+
+For the fourth plot, we were unable to directly replicate results. Those two plots are below. In the first one,
+```{r figure3_object4, echo=FALSE}
+# Prep p4v1
+train_control <- trainControl(method='LOOCV')
+model <- train(Attendees.at.San.Siro ~ Calls.and.SMS.Activity +
+                 Internet.Activity + Twitter.Activity,data=soccer_data,
+               trControl=train_control,
+               method='lm')
+attendence <- data.frame(predicted = predict(model, newdata=soccer_data,
+                                             interval='prediction'),
+                         actual = soccer_data$Attendees.at.San.Siro)
+
+p4v1 <- ggplot(attendence, aes(actual,predicted)) +
+      geom_point(colour = "blue") +
+      geom_smooth(method='lm', se=FALSE, colour='#959190', fullrange=TRUE,size=2) + 
+      scale_y_continuous(labels=scientific_formatter,
+                         breaks=seq(10000,90000,40000)) + 
+      coord_cartesian(ylim=c(0,90000), 
+                      xlim=c(0,90000)) +
+      scale_x_continuous(labels=scientific_formatter, 
+                         limits=c(-10000,100000),
+                         breaks=seq(10000,90000,40000)) + 
+      labs(x='Actual', y='Predicted') +
+      theme(aspect.ratio=1,
+            panel.background = element_blank(),
+            panel.border = element_rect(colour='black', fill=NA, size=1))
+
+# Prep p4v2
 model_2 <- lm(Attendees.at.San.Siro ~ Calls.and.SMS.Activity + Internet.Activity +
                 Twitter.Activity,data=soccer_data)
-attendence <- data.frame(predicted = predict.lm(model_2, 
+attendence_2 <- data.frame(predicted = predict.lm(model_2, 
                                                 newdata=soccer_data,
                                                 interval='prediction'),
                          actual = soccer_data$Attendees.at.San.Siro)
 
-p4 <- ggplot(attendence, aes(x=actual,y=predicted.fit)) +
+p4v2 <- ggplot(attendence_2, aes(x=actual,y=predicted.fit)) +
           geom_errorbar(aes(ymin = predicted.lwr, ymax = predicted.upr), 
                        colour = "blue", alpha = 0.2,size=4) + 
           geom_point(colour = "blue") +
@@ -281,18 +347,11 @@ p4 <- ggplot(attendence, aes(x=actual,y=predicted.fit)) +
                 panel.background = element_blank(),
                 panel.border = element_rect(colour='black', fill=NA, size=1))
 
-p1 <- ggplot_gtable(ggplot_build(p1))
-p2 <- ggplot_gtable(ggplot_build(p2))
-p3 <- ggplot_gtable(ggplot_build(p3))
-p4 <- ggplot_gtable(ggplot_build(p4))
+p4v1 <- ggplot_gtable(ggplot_build(p4v1))
+p4v2 <- ggplot_gtable(ggplot_build(p4v2))
 
-maxHeight = unit.pmax(p1$heights[2:3], p2$heights[2:3], p3$heights[2:3])
-p1$heights[2:3] <- maxHeight
-p2$heights[2:3] <- maxHeight
-grid.arrange(p1, p2, p3, p4, ncol=4, nrow=1, respect=TRUE,widths=c(1.15,1,1,1.3))
+grid.arrange(p4v1, p4v2, ncol=2, nrow=1, respect=TRUE,widths=c(1,1))
 ```
-
-This plot involves running a prediction -- OGI LEAVE NOTES HERE --  
 
 # Note to Connor
 
