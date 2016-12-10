@@ -477,6 +477,19 @@ bonus_data$Day <- factor(bonus_data$Day, levels =c('Sunday','Monday','Tuesday','
 linate.lm <- lm(Calls.and.SMS.Activity + Internet.Activity + Twitter.Activity ~ Day, data=bonus_data)
 model_data <- augment(linate.lm)
 ggplot(model_data, aes(Day, .resid)) + geom_boxplot(aes(fill=Day)) + ylab('Residuals')
+
+
+linate_call.lm <- lm(Calls.and.SMS.Activity ~ Day, data=bonus_data)
+linate_internet.lm <- lm(Internet.Activity ~ Day, data=bonus_data)
+linate_twitter.lm <- lm(Twitter.Activity ~ Day, data=bonus_data)
+
+model_calls <- augment(linate_call.lm)
+model_internet <- augment(linate_internet.lm)
+model_twitter <- augment(linate_twitter.lm)
+
+ggplot(model_calls, aes(Day, .resid)) + geom_boxplot(aes(fill=Day)) + ylab('Residuals')
+ggplot(model_internet, aes(Day, .resid)) + geom_boxplot(aes(fill=Day)) + ylab('Residuals')
+ggplot(model_twitter, aes(Day, .resid)) + geom_boxplot(aes(fill=Day)) + ylab('Residuals')
 ```
 
 ```{r bonus_boxes}
