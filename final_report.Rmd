@@ -15,6 +15,8 @@ library(grid)
 library(plyr)
 library(gridExtra)
 library(knitr)
+library(broom)
+library(multcomp)
 ```
 
 # Introduction
@@ -465,6 +467,20 @@ For comparison, here is the plot attached to the paper
 ## Conclusion  
 
 As it can be seen, our plots line up exactly with the ones published.  It should be noted that the authors of this paper made some assumptions that we do not agree with.  For one, they used flight data from a period 5-6 months after the data of cell phone activity and assumed that the flight schedule would remain consistent on a day by day schedule for the period over the phone data.  Given a lack of raw data for flights at the appropriate window, this assumption would need to be made, but it is one that could definitely be a major source of error.  The second issue is that the period of cell phone and internet activity recorded includes the Christmas holidays, which we would assume the number of passengers at the airport during this time would be different enough from outside the holiday period that it may be a source for error.  This potential source for error is minimized due to the way the grouping is done (summing all the recorded values for the same day of the week and hour of the day).
+
+
+# Bonus Section
+
+```{r bonus}
+linate.lm <- lm(flight_data$Flights ~ flight_data$Calls.and.SMS.Activity + flight_data$Internet.Activity + flight_data$Twitter.Activity)
+model_data <- augment(linate.lm)
+
+# Won't work because no 'Days' in model_data
+# ggplot(model_data, aes(Days, .resid)) + geom_boxplot(aes(fill=Days)) + ylab('Residuals')
+aggregation <- aggregate(Flights ~ Calls.and.SMS.Activity + Internet.Activity + Twitter.Activity, flight_data, var)
+
+```
+
 
 # Appendix
 
