@@ -472,36 +472,46 @@ As it can be seen, our plots line up exactly with the ones published.  It should
 
 # Bonus Section
 
-```{r bonus}
+```{r bonus_lm_combined, echo=FALSE}
+# Read in generated data with Day column
 bonus_data <- read.csv('./data/Linate_bonus.csv')
 bonus_data$Day <- factor(bonus_data$Day, levels =c('Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'))
+
+# Plot residuals of total model
 linate.lm <- lm(Calls.and.SMS.Activity + Internet.Activity + Twitter.Activity ~ Day, data=bonus_data)
 model_data <- augment(linate.lm)
-ggplot(model_data, aes(Day, .resid)) + geom_boxplot(aes(fill=Day)) + ylab('Residuals')
-
-
-linate_call.lm <- lm(Calls.and.SMS.Activity ~ Day, data=bonus_data)
-linate_internet.lm <- lm(Internet.Activity ~ Day, data=bonus_data)
-linate_twitter.lm <- lm(Twitter.Activity ~ Day, data=bonus_data)
-
-model_calls <- augment(linate_call.lm)
-model_internet <- augment(linate_internet.lm)
-model_twitter <- augment(linate_twitter.lm)
-
-ggplot(model_calls, aes(Day, .resid)) + geom_boxplot(aes(fill=Day)) + ylab('Residuals')
-ggplot(model_internet, aes(Day, .resid)) + geom_boxplot(aes(fill=Day)) + ylab('Residuals')
-ggplot(model_twitter, aes(Day, .resid)) + geom_boxplot(aes(fill=Day)) + ylab('Residuals')
+ggplot(model_data, aes(Day, .resid)) + geom_boxplot(aes(fill=Day)) + ylab('Residuals') + 
+  ggtitle('Residuals of total model') + 
+  theme(panel.background = element_blank(),
+        panel.border = element_rect(colour='black', fill=NA, size=1))
 ```
-```{r anova_tukey}
+
+```{r bonus_twitter, echo=FALSE}
+# Plot residuals of only Twitter
+linate_twitter.lm <- lm(Twitter.Activity ~ Day, data=bonus_data)
+model_twitter <- augment(linate_twitter.lm)
+ggplot(model_twitter, aes(Day, .resid)) + geom_boxplot(aes(fill=Day)) + ylab('Residuals') + 
+  ggtitle('Residuals of Twitter data') + 
+  theme(panel.background = element_blank(),
+        panel.border = element_rect(colour='black', fill=NA, size=1))
+```
+
+```{r anova_tukey, echo=FALSE}
 bonus_data.lm <- lm(Calls.and.SMS.Activity + Internet.Activity + Twitter.Activity ~ Day, data=bonus_data)
 anova(bonus_data.lm)
+```
 
+```{r, include=FALSE}
 bonus_mcp <- glht(bonus_data.lm,mcp(Day = "Tukey"))
 confint(bonus_mcp)
+```
+
+```{r}
+# Tukey Analysis
 summary(bonus_mcp, test = univariate())
 ```
 
-```{r anova_weekdays}
+```{r anova_weekdays, echo=FALSE}
 # Subset the data to only weekdays
 weekdays <- c('Monday','Tuesday','Wednesday','Thursday','Friday')
 bonus_data_weekday <- bonus_data %>%
