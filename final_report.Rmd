@@ -17,6 +17,7 @@ library(gridExtra)
 library(knitr)
 library(broom)
 library(multcomp)
+library(dplyr)
 ```
 
 # Introduction
@@ -120,12 +121,12 @@ To analyze this data, we need to merge the data into a common dataframe, where w
 san_siero.daily_data <- aggregate(san_siero.phone_data$Calls.and.SMS.Activity, 
                                   by=list(Category=san_siero.phone_data$Timestamp), 
                                   FUN=max)
-san_siero.daily_data <- rename(san_siero.daily_data, c("x"="Calls.and.SMS.Activity"))
+san_siero.daily_data <- plyr::rename(san_siero.daily_data, c("x"="Calls.and.SMS.Activity"))
 san_siero.daily_data$Internet.Activity = aggregate(san_siero.phone_data$Internet.Activity, 
                                          by=list(Cateogry=san_siero.phone_data$Timestamp), 
                                          FUN=max)$x
 san_siero.daily_data$Twitter.Activity = san_siero.twitter_data$Twitter.Activity
-san_siero.daily_data <- rename(san_siero.daily_data, c("Category"="Date"))
+san_siero.daily_data <- plyr::rename(san_siero.daily_data, c("Category"="Date"))
 soccer_data <- merge(san_siero.daily_data, san_siero.attendees, 
                                         by="Date")
 
